@@ -412,57 +412,32 @@ function renderResult(){
   const winner = computeWinner(scores);
   const tier = computeTier(scores, winner);
 
-  const primary = ARCHETYPES[winner.topKey];
-  const secondary = ARCHETYPES[winner.secondKey];
+  const lean = computeLeanIn(winner, scores);
+  const gap = computeFillGap(winner, scores);
 
+  // Primacy copy (no "surprise")
   const tierLine = (tier === "DOMINANT")
-    ? "You don’t just lean this way — you live here."
+    ? "Clear primacy — your answers concentrate here."
     : (tier === "STRONG")
-      ? "This is your natural edge under pressure."
-      : "It’s in you — it sharpens with reps.";
+      ? "Strong primacy — this is your main pull under pressure."
+      : "Emerging primacy — your bond style is still flexible.";
 
   app.innerHTML = `
     <div class="result">
-      <div class="rtitle">
-        <div class="rmeta">RESULT • TWO CLOSEST MATCHES</div>
-        <div class="rname">${escapeHtml(primary.name)}</div>
-      </div>
+      <div class="rmeta">RESULT • TWO BONDED BEAST RECOMMENDATIONS</div>
+      <div class="tier"><span>Primacy:</span> <b>${escapeHtml(tier)}</b> <span>— ${escapeHtml(tierLine)}</span></div>
 
-      <div class="pair">
-        <h3>Primary Match</h3>
-        <div class="line">
-          <div class="big">${escapeHtml(primary.name)}</div>
-          <div class="small">• ${escapeHtml(primary.meta)}</div>
-        </div>
+      <div class="twoCol" style="margin-top:14px">
+        ${renderArchetypeCard("Lean In Bond (Amplify Your Style)", lean.partner)}
+        ${renderArchetypeCard("Fill the Gap Bond (Cover Your Weakness)", gap.partner)}
       </div>
-
-      <div class="pair">
-        <h3>Secondary Match</h3>
-        <div class="line">
-          <div class="big">${escapeHtml(secondary.name)}</div>
-          <div class="small">• ${escapeHtml(secondary.meta)}</div>
-        </div>
-      </div>
-
-      <div class="rbody">
-        ${primary.body.map(p => `<div style="margin-top:8px">${escapeHtml(p)}</div>`).join("")}
-      </div>
-
-      <div class="rlist">
-        <div style="margin-top:10px; font-weight:900; color:#fff">In the Ring, you:</div>
-        <ul style="margin:8px 0 0 18px; padding:0;">
-          ${primary.bullets.map(b=>`<li>${escapeHtml(b)}</li>`).join("")}
-        </ul>
-      </div>
-
-      <div class="tier"><span>Surprise Tier:</span> <b>${escapeHtml(tier)}</b> <span>— ${escapeHtml(tierLine)}</span></div>
 
       <div class="row" style="margin-top:16px">
         <button id="restart">Retake</button>
         <button class="primary" id="copy">Copy Result</button>
       </div>
 
-      <div class="mini">Next step: choose who you’d rely on to survive — your Bond.</div>
+      <div class="mini">Next step: choose a specific Bonded Beast that fits one of these two bond styles.</div>
 
       <div class="scores" id="debug">
         ${Object.entries(scores).map(([k,v])=>`${k}: ${v}`).join(" | ")}
@@ -477,7 +452,8 @@ function renderResult(){
   });
 
   app.querySelector("#copy").addEventListener("click", async () => {
-    const text = `FMFC Combat Persona: ${primary.name} (${primary.meta}) • Secondary: ${secondary.name} (${secondary.meta}) • Tier: ${tier}`;
+    const text =
+      `FMFC Bonded Beast Quiz — Lean In: ${ARCHETYPES[lean.partner].name} • Fill the Gap: ${ARCHETYPES[gap.partner].name} • Primacy: ${tier}`;
     try{
       await navigator.clipboard.writeText(text);
       app.querySelector("#copy").textContent = "Copied";
@@ -487,7 +463,6 @@ function renderResult(){
     }
   });
 }
-
 function escapeHtml(str){
   return String(str)
     .replaceAll("&","&amp;")
