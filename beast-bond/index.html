@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Full Moon Fight Club — Combat Persona Quiz</title>
+  <style>
+    :root{
+      --bg:#07070a;
+      --panel:#0f1016;
+      --panel2:#0b0c12;
+      --text:#f2f2f2;
+      --muted:#b8b8c2;
+      --gold:#d6b25e;
+      --line:#262837;
+      --bad:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 30% 0%, #121322 0%, var(--bg) 55%, #05050a 100%);
+      color:var(--text);
+      letter-spacing:.2px;
+    }
+    .wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px;}
+    .top{
+      display:flex;flex-direction:column;gap:8px;margin:8px 0 18px 0;
+      border:1px solid var(--line); border-radius:16px; padding:18px 16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+    }
+    h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.6px}
+    .sub{color:var(--muted); font-size:14px; line-height:1.4}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--gold); font-weight:700; font-size:12px; letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .bar{
+      margin-top:10px;
+      height:10px;border-radius:999px;background:#11121b;border:1px solid var(--line);
+      overflow:hidden;
+    }
+    .bar > div{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff1b1);}
+    .card{
+      margin-top:14px;
+      border:1px solid var(--line); border-radius:16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+      padding:18px 16px;
+    }
+    .qhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap}
+    .qnum{color:var(--gold);font-weight:800;letter-spacing:1px}
+    .qtitle{font-size:18px;font-weight:800;margin:6px 0 0 0}
+    .hint{color:var(--muted);font-size:13px}
+    .opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+    .opt{
+      display:flex;gap:12px;align-items:flex-start;
+      padding:12px 12px;border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      cursor:pointer;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+    }
+    .opt:hover{border-color:#3a3d55;background:rgba(255,255,255,0.04)}
+    .opt input{margin-top:3px; transform:scale(1.1)}
+    .opt .txt{line-height:1.25}
+    .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap}
+    .err{color:var(--bad);font-weight:700;font-size:13px;display:none}
+    button{
+      appearance:none;border:1px solid var(--line);
+      background:#141628;color:var(--text);
+      padding:10px 14px;border-radius:12px;
+      font-weight:800; letter-spacing:.4px;
+      cursor:pointer;
+    }
+    button.primary{
+      background: linear-gradient(180deg, #1a1c2f, #111225);
+      border-color:#3a3d55;
+    }
+    button.primary:hover{border-color:#6a5a2c}
+    button:disabled{opacity:.45;cursor:not-allowed}
+    .result{
+      border:1px solid var(--line); border-radius:16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+      padding:22px 16px;margin-top:16px;
+    }
+    .rtitle{display:flex;flex-direction:column;gap:6px}
+    .rname{font-size:26px;font-weight:900;letter-spacing:1px}
+    .rmeta{color:var(--gold);font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:12px}
+    .rbody{margin-top:12px;color:var(--text);line-height:1.55}
+    .rlist{margin-top:12px;color:var(--muted);line-height:1.5}
+    .tier{
+      margin-top:14px;
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid #3a3d55;border-radius:999px;padding:6px 10px;
+      background:rgba(255,255,255,0.03);
+      font-weight:900;letter-spacing:.8px;text-transform:uppercase;font-size:12px;
+    }
+    .tier b{color:var(--gold)}
+    .pair{
+      margin-top:14px;
+      border:1px solid #2a2d41;
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .pair h3{margin:0 0 6px 0; font-size:14px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)}
+    .pair .line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+    .pair .big{font-size:18px;font-weight:900;letter-spacing:.6px}
+    .pair .small{color:var(--muted);font-size:12px}
+    .mini{color:var(--muted);font-size:12px;margin-top:8px}
+    .scores{display:none;}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill">Full Moon Fight Club • Combat Persona</div>
+      <h1>Find your style under pressure.</h1>
+      <div class="sub">
+        Choose <b>exactly two</b> answers per question. Keep it instinctual.
+        Your tier is revealed <b>only at the end</b>.
+      </div>
+      <div class="bar" aria-label="progress">
+        <div id="progress"></div>
+      </div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+
+<script>
+/** ====== CONFIG ====== */
+const WEIGHTS = {
+  duelist:     { primary: "duelist",     adj: ["controller","executioner"] },
+  dominator:   { primary: "dominator",   adj: ["executioner","juggernaut"] },
+  anchor:      { primary: "anchor",      adj: ["controller","juggernaut"] },
+  executioner: { primary: "executioner", adj: ["duelist","dominator"] },
+  controller:  { primary: "controller",  adj: ["duelist","anchor"] },
+  juggernaut:  { primary: "juggernaut",  adj: ["anchor","dominator"] },
+};
+
+const ARCHETYPES = {
+  duelist: {
+    name: "THE DUELIST",
+    meta: "Finesse (₪Ꚛ)",
+    body: [
+      "You win through precision.",
+      "You don’t overpower — you outplay. You read hesitation before it becomes action. Timing is your weapon, control is your advantage.",
+      "You punish mistakes instantly, and you make clean wins look effortless."
+    ],
+    bullets: ["Punish openings", "Win on timing", "Turn defense into advantage"],
+  },
+  dominator: {
+    name: "THE DOMINATOR",
+    meta: "Impact (₪Ͽ)",
+    body: [
+      "You take ground and don’t give it back.",
+      "Momentum bends toward you. When others hesitate, you commit. Pressure isn’t something you fear — it’s something you create.",
+      "You win by forcing decisions."
+    ],
+    bullets: ["Create pressure", "Commit first", "Break momentum"],
+  },
+  anchor: {
+    name: "THE ANCHOR",
+    meta: "Grit (₪Ø)",
+    body: [
+      "You endure.",
+      "When others fade, you remain. You don’t panic. You don’t rush. You survive long enough to win.",
+      "Your advantage is inevitability."
+    ],
+    bullets: ["Outlast swings", "Stay composed", "Refuse to fall"],
+  },
+  executioner: {
+    name: "THE EXECUTIONER",
+    meta: "Impact + Finesse (ϿꚚ)",
+    body: [
+      "You don’t waste motion.",
+      "You wait. You watch. Then you finish clean. Your strength isn’t noise — it’s inevitability.",
+      "One opening is all you need."
+    ],
+    bullets: ["Punish hard", "Convert openings", "End exchanges"],
+  },
+  controller: {
+    name: "THE CONTROLLER",
+    meta: "Finesse + Grit (ꚚØ)",
+    body: [
+      "You dictate tempo.",
+      "You stay composed when chaos rises. You choose the exchange. You make the fight happen on your terms.",
+      "You’re hard to trap and harder to rush."
+    ],
+    bullets: ["Control pace", "Own positioning", "Turn chaos into order"],
+  },
+  juggernaut: {
+    name: "THE JUGGERNAUT",
+    meta: "Grit + Impact (ØϿ)",
+    body: [
+      "You move bodies.",
+      "You reshape space. You don’t chase the fight — you carry it with you. When you advance, the arena shifts.",
+      "Collision is inevitable."
+    ],
+    bullets: ["Take space", "Force movement", "Win by pressure + mass"],
+  },
+};
+
+const QUESTIONS = [
+  {
+    prompt: "When conflict starts, your instinct is to:",
+    options: [
+      { text: "Wait for the opening.", key: "duelist" },
+      { text: "Move forward immediately.", key: "dominator" },
+      { text: "Hold your ground.", key: "anchor" },
+      { text: "Lure them into overcommitting.", key: "executioner" },
+      { text: "Control the pace.", key: "controller" },
+      { text: "Take space physically.", key: "juggernaut" },
+    ]
+  },
+  {
+    prompt: "In competition, you value most:",
+    options: [
+      { text: "Timing.", key: "duelist" },
+      { text: "Momentum.", key: "dominator" },
+      { text: "Endurance.", key: "anchor" },
+      { text: "Precision under pressure.", key: "executioner" },
+      { text: "Composure.", key: "controller" },
+      { text: "Physical dominance.", key: "juggernaut" },
+    ]
+  },
+  {
+    prompt: "If underestimated, you:",
+    options: [
+      { text: "Punish the mistake.", key: "duelist" },
+      { text: "Escalate immediately.", key: "dominator" },
+      { text: "Outlast them.", key: "anchor" },
+      { text: "Finish decisively.", key: "executioner" },
+      { text: "Stay untouchable.", key: "controller" },
+      { text: "Close distance.", key: "juggernaut" },
+    ]
+  },
+  {
+    prompt: "You feel strongest when:",
+    options: [
+      { text: "Exchanges are technical.", key: "duelist" },
+      { text: "The pace is aggressive.", key: "dominator" },
+      { text: "The fight drags on.", key: "anchor" },
+      { text: "The moment is perfect.", key: "executioner" },
+      { text: "Chaos slows down.", key: "controller" },
+      { text: "Bodies are moving.", key: "juggernaut" },
+    ]
+  },
+  {
+    prompt: "Your greatest strength is:",
+    options: [
+      { text: "Reading intention.", key: "duelist" },
+      { text: "Commitment.", key: "dominator" },
+      { text: "Resilience.", key: "anchor" },
+      { text: "Killer instinct.", key: "executioner" },
+      { text: "Positioning.", key: "controller" },
+      { text: "Pressure.", key: "juggernaut" },
+    ]
+  },
+  {
+    prompt: "You win because:",
+    options: [
+      { text: "They missed.", key: "duelist" },
+      { text: "They hesitated.", key: "dominator" },
+      { text: "They tired.", key: "anchor" },
+      { text: "They slipped once.", key: "executioner" },
+      { text: "They couldn’t trap you.", key: "controller" },
+      { text: "They couldn’t move.", key: "juggernaut" },
+    ]
+  },
+];
+
+const EXACT_PICKS = 2;
+
+/** ====== STATE ====== */
+let qIndex = 0;
+const answers = QUESTIONS.map(() => new Set());
+
+/** ====== SCORE ENGINE ====== */
+function emptyScores(){
+  return { duelist:0, dominator:0, anchor:0, executioner:0, controller:0, juggernaut:0 };
+}
+function applyAffinity(scores, archetypeKey){
+  const w = WEIGHTS[archetypeKey];
+  scores[w.primary] += 2;
+  scores[w.adj[0]] += 1;
+  scores[w.adj[1]] += 1;
+}
+function computeScores(){
+  const scores = emptyScores();
+  QUESTIONS.forEach((q, qi) => {
+    for (const optIndex of answers[qi]) {
+      applyAffinity(scores, q.options[optIndex].key);
+    }
+  });
+  return scores;
+}
+function computeWinner(scores){
+  const entries = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+  const [topKey, topVal] = entries[0];
+  const [secondKey, secondVal] = entries[1];
+  return { topKey, topVal, secondKey, secondVal, sorted: entries };
+}
+function computeTier(scores, winner){
+  const lead = winner.topVal - winner.secondVal;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const concentration = total > 0 ? (winner.topVal / total) : 0;
+
+  if (lead >= 6 || concentration >= 0.26) return "DOMINANT";
+  if (lead >= 3 || concentration >= 0.21) return "STRONG";
+  return "EMERGING";
+}
+
+/** ====== UI ====== */
+const app = document.getElementById("app");
+const progressEl = document.getElementById("progress");
+
+function render(){
+  const pct = Math.round((qIndex / QUESTIONS.length) * 100);
+  progressEl.style.width = `${pct}%`;
+
+  if (qIndex >= QUESTIONS.length){
+    renderResult();
+    return;
+  }
+
+  const q = QUESTIONS[qIndex];
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead">
+        <div>
+          <div class="qnum">QUESTION ${qIndex+1} / ${QUESTIONS.length}</div>
+          <div class="qtitle">${escapeHtml(q.prompt)}</div>
+        </div>
+        <div class="hint">Choose exactly <b>${EXACT_PICKS}</b></div>
+      </div>
+
+      <div class="opts">
+        ${q.options.map((opt, i) => {
+          const checked = answers[qIndex].has(i) ? "checked" : "";
+          return `
+            <label class="opt">
+              <input type="checkbox" data-idx="${i}" ${checked} />
+              <div class="txt">${escapeHtml(opt.text)}</div>
+            </label>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="row">
+        <div class="err" id="err">Choose exactly ${EXACT_PICKS} options to continue.</div>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button id="back" ${qIndex===0 ? "disabled":""}>Back</button>
+          <button class="primary" id="next">Next</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  app.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const idx = parseInt(e.target.dataset.idx, 10);
+      const set = answers[qIndex];
+
+      if (e.target.checked){
+        if (set.size >= EXACT_PICKS){
+          e.target.checked = false;
+          return;
+        }
+        set.add(idx);
+      } else {
+        set.delete(idx);
+      }
+      hideError();
+    });
+  });
+
+  app.querySelector("#back").addEventListener("click", () => {
+    hideError();
+    qIndex = Math.max(0, qIndex-1);
+    render();
+  });
+
+  app.querySelector("#next").addEventListener("click", () => {
+    if (answers[qIndex].size !== EXACT_PICKS){
+      showError();
+      return;
+    }
+    hideError();
+    qIndex += 1;
+    render();
+  });
+}
+
+function showError(){
+  const el = app.querySelector("#err");
+  if (el){ el.style.display = "block"; }
+}
+function hideError(){
+  const el = app.querySelector("#err");
+  if (el){ el.style.display = "none"; }
+}
+
+function renderResult(){
+  progressEl.style.width = `100%`;
+
+  const scores = computeScores();
+  const winner = computeWinner(scores);
+  const tier = computeTier(scores, winner);
+
+  const primary = ARCHETYPES[winner.topKey];
+  const secondary = ARCHETYPES[winner.secondKey];
+
+  const tierLine = (tier === "DOMINANT")
+    ? "You don’t just lean this way — you live here."
+    : (tier === "STRONG")
+      ? "This is your natural edge under pressure."
+      : "It’s in you — it sharpens with reps.";
+
+  app.innerHTML = `
+    <div class="result">
+      <div class="rtitle">
+        <div class="rmeta">RESULT • TWO CLOSEST MATCHES</div>
+        <div class="rname">${escapeHtml(primary.name)}</div>
+      </div>
+
+      <div class="pair">
+        <h3>Primary Match</h3>
+        <div class="line">
+          <div class="big">${escapeHtml(primary.name)}</div>
+          <div class="small">• ${escapeHtml(primary.meta)}</div>
+        </div>
+      </div>
+
+      <div class="pair">
+        <h3>Secondary Match</h3>
+        <div class="line">
+          <div class="big">${escapeHtml(secondary.name)}</div>
+          <div class="small">• ${escapeHtml(secondary.meta)}</div>
+        </div>
+      </div>
+
+      <div class="rbody">
+        ${primary.body.map(p => `<div style="margin-top:8px">${escapeHtml(p)}</div>`).join("")}
+      </div>
+
+      <div class="rlist">
+        <div style="margin-top:10px; font-weight:900; color:#fff">In the Ring, you:</div>
+        <ul style="margin:8px 0 0 18px; padding:0;">
+          ${primary.bullets.map(b=>`<li>${escapeHtml(b)}</li>`).join("")}
+        </ul>
+      </div>
+
+      <div class="tier"><span>Surprise Tier:</span> <b>${escapeHtml(tier)}</b> <span>— ${escapeHtml(tierLine)}</span></div>
+
+      <div class="row" style="margin-top:16px">
+        <button id="restart">Retake</button>
+        <button class="primary" id="copy">Copy Result</button>
+      </div>
+
+      <div class="mini">Next step: choose who you’d rely on to survive — your Bond.</div>
+
+      <div class="scores" id="debug">
+        ${Object.entries(scores).map(([k,v])=>`${k}: ${v}`).join(" | ")}
+      </div>
+    </div>
+  `;
+
+  app.querySelector("#restart").addEventListener("click", () => {
+    qIndex = 0;
+    for (let i=0;i<answers.length;i++) answers[i] = new Set();
+    render();
+  });
+
+  app.querySelector("#copy").addEventListener("click", async () => {
+    const text = `FMFC Combat Persona: ${primary.name} (${primary.meta}) • Secondary: ${secondary.name} (${secondary.meta}) • Tier: ${tier}`;
+    try{
+      await navigator.clipboard.writeText(text);
+      app.querySelector("#copy").textContent = "Copied";
+      setTimeout(()=> app.querySelector("#copy").textContent = "Copy Result", 900);
+    } catch(e){
+      alert(text);
+    }
+  });
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+render();
+</script>
+</body>
+</html>
