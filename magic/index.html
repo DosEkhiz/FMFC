@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Full Moon Fight Club — Temple Affinity Quiz</title>
+  <title>Full Moon Fight Club — Magical Temple Affinity Quiz</title>
   <style>
     :root{
       --bg:#07070a;
@@ -426,7 +426,7 @@ function render(){
             Choose <b>${EXACT_PICKS}</b>. Mark one as <b>Primary</b> (★).
           </div>
         </div>
-        <div class="hint">Primary (+2) • Secondary (+1)</div>
+        <div class="hint">Choose two • Mark one as Primary (★)</div>
       </div>
 
       <div class="opts">
@@ -442,11 +442,8 @@ function render(){
             <label class="opt" data-opt="${i}">
               <input type="checkbox" data-idx="${i}" ${checked} />
               <div class="txt">
-                ${escapeHtml(opt.text)}
-                <div style="margin-top:6px; color:var(--muted); font-size:12px;">
-                  ${escapeHtml(TEMPLE_LABEL[opt.temple])} • ${escapeHtml(TEMPLE_META[opt.temple])}
-                </div>
-              </div>
+  ${escapeHtml(opt.text)}
+</div>
               <button type="button" class="${starClass}" data-star="${i}" ${starStyle}>${starText}</button>
             </label>
           `;
