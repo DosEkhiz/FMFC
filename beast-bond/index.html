@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Full Moon Fight Club — Combat Persona Quiz</title>
+  <title>Full Moon Fight Club — Bonded Beast Quiz</title>
   <style>
     :root{
       --bg:#07070a;
@@ -85,11 +85,19 @@
       background: linear-gradient(180deg,var(--panel),var(--panel2));
       padding:22px 16px;margin-top:16px;
     }
-    .rtitle{display:flex;flex-direction:column;gap:6px}
-    .rname{font-size:26px;font-weight:900;letter-spacing:1px}
     .rmeta{color:var(--gold);font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:12px}
-    .rbody{margin-top:12px;color:var(--text);line-height:1.55}
-    .rlist{margin-top:12px;color:var(--muted);line-height:1.5}
+    .mini{color:var(--muted);font-size:12px;margin-top:8px}
+    .pair{
+      margin-top:14px;
+      border:1px solid #2a2d41;
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .pair h3{margin:0 0 6px 0; font-size:12px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)}
+    .pair .line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+    .pair .big{font-size:18px;font-weight:900;letter-spacing:.6px}
+    .pair .small{color:var(--muted);font-size:12px}
     .tier{
       margin-top:14px;
       display:inline-flex;align-items:center;gap:8px;
@@ -98,29 +106,19 @@
       font-weight:900;letter-spacing:.8px;text-transform:uppercase;font-size:12px;
     }
     .tier b{color:var(--gold)}
-    .pair{
-      margin-top:14px;
-      border:1px solid #2a2d41;
-      border-radius:14px;
-      padding:12px 12px;
-      background: rgba(255,255,255,0.02);
-    }
-    .pair h3{margin:0 0 6px 0; font-size:14px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)}
-    .pair .line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
-    .pair .big{font-size:18px;font-weight:900;letter-spacing:.6px}
-    .pair .small{color:var(--muted);font-size:12px}
-    .mini{color:var(--muted);font-size:12px;margin-top:8px}
+    .twoCol{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
+    @media(min-width:760px){ .twoCol{grid-template-columns:1fr 1fr;} }
     .scores{display:none;}
   </style>
 </head>
 <body>
   <div class="wrap">
     <div class="top">
-      <div class="pill">Full Moon Fight Club • Combat Persona</div>
-      <h1>Find your style under pressure.</h1>
+      <div class="pill">Full Moon Fight Club • Bonded Beast</div>
+      <h1>Find the partner that makes you dangerous.</h1>
       <div class="sub">
         Choose <b>exactly two</b> answers per question. Keep it instinctual.
-        Your tier is revealed <b>only at the end</b>.
+        Your Bond recommendations are revealed <bonly at the end</b>.
       </div>
       <div class="bar" aria-label="progress">
         <div id="progress"></div>
@@ -131,7 +129,7 @@
   </div>
 
 <script>
-/** ====== CONFIG ====== */
+/** ====== CANON ARCHETYPES (hidden until results) ====== */
 const WEIGHTS = {
   duelist:     { primary: "duelist",     adj: ["controller","executioner"] },
   dominator:   { primary: "dominator",   adj: ["executioner","juggernaut"] },
@@ -145,130 +143,141 @@ const ARCHETYPES = {
   duelist: {
     name: "THE DUELIST",
     meta: "Finesse (₪Ꚛ)",
+    bondRole: "Precision Assist",
     body: [
-      "You win through precision.",
-      "You don’t overpower — you outplay. You read hesitation before it becomes action. Timing is your weapon, control is your advantage.",
-      "You punish mistakes instantly, and you make clean wins look effortless."
+      "A Bonded Beast that sees the opening before it exists.",
+      "It sharpens exchanges, punishes mistakes, and keeps your wins clean."
     ],
     bullets: ["Punish openings", "Win on timing", "Turn defense into advantage"],
   },
   dominator: {
     name: "THE DOMINATOR",
     meta: "Impact (₪Ͽ)",
+    bondRole: "Tempo Accelerant",
     body: [
-      "You take ground and don’t give it back.",
-      "Momentum bends toward you. When others hesitate, you commit. Pressure isn’t something you fear — it’s something you create.",
-      "You win by forcing decisions."
+      "A Bonded Beast that forces decisions.",
+      "It creates pressure, collapses space, and makes hesitation lethal."
     ],
     bullets: ["Create pressure", "Commit first", "Break momentum"],
   },
   anchor: {
     name: "THE ANCHOR",
     meta: "Grit (₪Ø)",
+    bondRole: "Stabilizer",
     body: [
-      "You endure.",
-      "When others fade, you remain. You don’t panic. You don’t rush. You survive long enough to win.",
-      "Your advantage is inevitability."
+      "A Bonded Beast that keeps you alive when the fight turns ugly.",
+      "It absorbs chaos, buys time, and turns endurance into advantage."
     ],
     bullets: ["Outlast swings", "Stay composed", "Refuse to fall"],
   },
   executioner: {
     name: "THE EXECUTIONER",
     meta: "Impact + Finesse (ϿꚚ)",
+    bondRole: "Converter",
     body: [
-      "You don’t waste motion.",
-      "You wait. You watch. Then you finish clean. Your strength isn’t noise — it’s inevitability.",
-      "One opening is all you need."
+      "A Bonded Beast that turns advantage into the end.",
+      "It waits, watches, then finishes decisively the moment it’s possible."
     ],
     bullets: ["Punish hard", "Convert openings", "End exchanges"],
   },
   controller: {
     name: "THE CONTROLLER",
     meta: "Finesse + Grit (ꚚØ)",
+    bondRole: "Fight Architect",
     body: [
-      "You dictate tempo.",
-      "You stay composed when chaos rises. You choose the exchange. You make the fight happen on your terms.",
-      "You’re hard to trap and harder to rush."
+      "A Bonded Beast that makes the arena feel smaller for them and bigger for you.",
+      "It controls pace, positioning, and makes chaos predictable."
     ],
     bullets: ["Control pace", "Own positioning", "Turn chaos into order"],
   },
   juggernaut: {
     name: "THE JUGGERNAUT",
     meta: "Grit + Impact (ØϿ)",
+    bondRole: "Collision Engine",
     body: [
-      "You move bodies.",
-      "You reshape space. You don’t chase the fight — you carry it with you. When you advance, the arena shifts.",
-      "Collision is inevitable."
+      "A Bonded Beast that moves bodies and reshapes space.",
+      "It wins by displacement, pressure, and inevitable collision."
     ],
     bullets: ["Take space", "Force movement", "Win by pressure + mass"],
   },
 };
 
+/** ====== FILL-GAP COMPLEMENTS (results only) ====== */
+const FILL_GAP = {
+  duelist:     ["anchor","juggernaut"],
+  dominator:   ["controller","anchor"],
+  anchor:      ["executioner","dominator"],
+  executioner: ["controller","anchor"],
+  controller:  ["dominator","executioner"],
+  juggernaut:  ["duelist","controller"],
+};
+
+/** ====== QUESTIONS (no archetype labels visible) ====== */
 const QUESTIONS = [
   {
-    prompt: "When conflict starts, your instinct is to:",
+    prompt: "When the fight goes sideways, you want your Bonded Beast to:",
     options: [
-      { text: "Wait for the opening.", key: "duelist" },
-      { text: "Move forward immediately.", key: "dominator" },
-      { text: "Hold your ground.", key: "anchor" },
-      { text: "Lure them into overcommitting.", key: "executioner" },
-      { text: "Control the pace.", key: "controller" },
-      { text: "Take space physically.", key: "juggernaut" },
+      { text: "Mark the opening.", key: "duelist" },
+      { text: "Force the decision.", key: "dominator" },
+      { text: "Hold us together.", key: "anchor" },
+      { text: "End it the moment it’s possible.", key: "executioner" },
+      { text: "Slow the chaos down.", key: "controller" },
+      { text: "Move bodies and reset space.", key: "juggernaut" },
     ]
   },
   {
-    prompt: "In competition, you value most:",
+    prompt: "The kind of support that feels best is:",
     options: [
-      { text: "Timing.", key: "duelist" },
-      { text: "Momentum.", key: "dominator" },
-      { text: "Endurance.", key: "anchor" },
-      { text: "Precision under pressure.", key: "executioner" },
-      { text: "Composure.", key: "controller" },
-      { text: "Physical dominance.", key: "juggernaut" },
+      { text: "Cleaner exchanges.", key: "duelist" },
+      { text: "More pressure.", key: "dominator" },
+      { text: "More survival.", key: "anchor" },
+      { text: "More conversion.", key: "executioner" },
+      { text: "More control.", key: "controller" },
+      { text: "More collision.", key: "juggernaut" },
     ]
   },
   {
-    prompt: "If underestimated, you:",
+    prompt: "If your Bond had one job, it would be to:",
     options: [
-      { text: "Punish the mistake.", key: "duelist" },
-      { text: "Escalate immediately.", key: "dominator" },
-      { text: "Outlast them.", key: "anchor" },
-      { text: "Finish decisively.", key: "executioner" },
-      { text: "Stay untouchable.", key: "controller" },
-      { text: "Close distance.", key: "juggernaut" },
+      { text: "Punish mistakes.", key: "duelist" },
+      { text: "Create momentum.", key: "dominator" },
+      { text: "Refuse to fall.", key: "anchor" },
+      { text: "Finish clean.", key: "executioner" },
+      { text: "Own positioning.", key: "controller" },
+      { text: "Break formations.", key: "juggernaut" },
     ]
   },
   {
-    prompt: "You feel strongest when:",
+    prompt: "You trust a teammate most when they are:",
     options: [
-      { text: "Exchanges are technical.", key: "duelist" },
-      { text: "The pace is aggressive.", key: "dominator" },
-      { text: "The fight drags on.", key: "anchor" },
-      { text: "The moment is perfect.", key: "executioner" },
-      { text: "Chaos slows down.", key: "controller" },
-      { text: "Bodies are moving.", key: "juggernaut" },
+      { text: "Quiet and precise.", key: "duelist" },
+      { text: "Aggressive and committed.", key: "dominator" },
+      { text: "Calm and unbreakable.", key: "anchor" },
+      { text: "Patient… then lethal.", key: "executioner" },
+      { text: "Composed and strategic.", key: "controller" },
+      { text: "Relentless and physical.", key: "juggernaut" },
     ]
   },
   {
-    prompt: "Your greatest strength is:",
+    prompt: "Your favorite 2v2 plan looks like:",
     options: [
-      { text: "Reading intention.", key: "duelist" },
-      { text: "Commitment.", key: "dominator" },
-      { text: "Resilience.", key: "anchor" },
-      { text: "Killer instinct.", key: "executioner" },
-      { text: "Positioning.", key: "controller" },
-      { text: "Pressure.", key: "juggernaut" },
+      { text: "Win exchanges clean.", key: "duelist" },
+      { text: "Overwhelm with pace.", key: "dominator" },
+      { text: "Survive their spike.", key: "anchor" },
+      { text: "One mistake → end.", key: "executioner" },
+      { text: "Control space and tempo.", key: "controller" },
+      { text: "Force displacement.", key: "juggernaut" },
     ]
   },
   {
-    prompt: "You win because:",
+    prompt: "In a highlight clip, your Bonded Beast is the one who:",
     options: [
-      { text: "They missed.", key: "duelist" },
-      { text: "They hesitated.", key: "dominator" },
-      { text: "They tired.", key: "anchor" },
-      { text: "They slipped once.", key: "executioner" },
-      { text: "They couldn’t trap you.", key: "controller" },
-      { text: "They couldn’t move.", key: "juggernaut" },
+      { text: "Threads the needle.", key: "duelist" },
+      { text: "Starts the avalanche.", key: "dominator" },
+      { text: "Won’t go down.", key: "anchor" },
+      { text: "Gets the final word.", key: "executioner" },
+      { text: "Makes them look lost.", key: "controller" },
+      { text: "Sends someone flying.", key: "juggernaut" },
     ]
   },
 ];
@@ -279,7 +288,7 @@ const EXACT_PICKS = 2;
 let qIndex = 0;
 const answers = QUESTIONS.map(() => new Set());
 
-/** ====== SCORE ENGINE ====== */
+/** ====== SCORE ENGINE (same as your persona quiz) ====== */
 function emptyScores(){
   return { duelist:0, dominator:0, anchor:0, executioner:0, controller:0, juggernaut:0 };
 }
@@ -312,6 +321,30 @@ function computeTier(scores, winner){
   if (lead >= 6 || concentration >= 0.26) return "DOMINANT";
   if (lead >= 3 || concentration >= 0.21) return "STRONG";
   return "EMERGING";
+}
+
+/** ====== RECOMMENDATION HELPERS ====== */
+function bestOf(keys, scores){
+  let best = keys[0], bestV = -Infinity;
+  for (const k of keys){
+    if (scores[k] > bestV){
+      bestV = scores[k];
+      best = k;
+    }
+  }
+  return best;
+}
+function computeLeanIn(winner, scores){
+  const primary = winner.topKey;
+  const adj = WEIGHTS[primary].adj;
+  const partner = bestOf(adj, scores); // strict: adjacencies only
+  return { primary, partner };
+}
+function computeFillGap(winner, scores){
+  const primary = winner.topKey;
+  const complements = FILL_GAP[primary] || [];
+  const partner = bestOf(complements, scores); // strict: complements only
+  return { primary, partner };
 }
 
 /** ====== UI ====== */
@@ -405,6 +438,26 @@ function hideError(){
   if (el){ el.style.display = "none"; }
 }
 
+function renderArchetypeCard(label, key){
+  const a = ARCHETYPES[key];
+  return `
+    <div class="pair">
+      <h3>${escapeHtml(label)}</h3>
+      <div class="line">
+        <div class="big">${escapeHtml(a.name)}</div>
+        <div class="small">• ${escapeHtml(a.meta)} • ${escapeHtml(a.bondRole)}</div>
+      </div>
+      <div class="mini" style="margin-top:10px; line-height:1.5">
+        ${a.body.map(p => `<div style="margin-top:6px">${escapeHtml(p)}</div>`).join("")}
+        <div style="margin-top:10px; font-weight:900; color:#fff">In the Ring, this Bond:</div>
+        <ul style="margin:8px 0 0 18px; padding:0; color:var(--muted)">
+          ${a.bullets.map(b=>`<li>${escapeHtml(b)}</li>`).join("")}
+        </ul>
+      </div>
+    </div>
+  `;
+}
+
 function renderResult(){
   progressEl.style.width = `100%`;
 
@@ -415,7 +468,6 @@ function renderResult(){
   const lean = computeLeanIn(winner, scores);
   const gap = computeFillGap(winner, scores);
 
-  // Primacy copy (no "surprise")
   const tierLine = (tier === "DOMINANT")
     ? "Clear primacy — your answers concentrate here."
     : (tier === "STRONG")
@@ -463,6 +515,7 @@ function renderResult(){
     }
   });
 }
+
 function escapeHtml(str){
   return String(str)
     .replaceAll("&","&amp;")
