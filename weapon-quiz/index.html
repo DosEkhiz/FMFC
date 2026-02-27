@@ -56,8 +56,19 @@
     .opt small{color:var(--muted); line-height:1.4}
     .pickrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
    select{
-  width:160px; padding:10px 10px; border-radius:12px; border:1px solid var(--border);
-  background:rgba(0,0,0,.25); color:var(--text); outline:none;
+  width:180px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:#e6e6e6;     /* light grey */
+  color:#000000;          /* black text */
+  font-weight:600;
+  outline:none;
+}
+
+select:focus{
+  border-color:#7aa2ff;
+  box-shadow:0 0 0 2px rgba(122,162,255,.25);
 }
     .warn{color:#ffcf66; font-size:13px; margin-top:10px; display:none}
     .results{padding:18px;}
