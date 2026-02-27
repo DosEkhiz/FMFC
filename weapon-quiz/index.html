@@ -77,6 +77,21 @@ select:focus{
     .big{font-size:22px; margin:10px 0 6px;}
     .list{margin:10px 0 0; padding-left:18px; color:var(--muted); line-height:1.6}
     .footer-note{color:var(--muted); font-size:12px; margin-top:10px}
+  .nextsteps{
+  margin-top:14px;
+  border:1px solid #2a2d41;
+  border-radius:14px;
+  padding:12px 12px;
+  background: rgba(255,255,255,0.02);
+}
+.nextsteps a{
+  color: var(--gold);
+  font-weight:900;
+  text-decoration:none;
+  border-bottom:1px solid rgba(214,178,94,0.35);
+}
+.nextsteps a:hover{ border-bottom-color: rgba(214,178,94,0.9); }
+.nextsteps .links{ display:flex; flex-wrap:wrap; gap:14px; margin-top:8px; }
   </style>
 </head>
 
@@ -429,6 +444,25 @@ function renderResults(payload){
       <ul class="list">${why.map(x => `<li>${x}</li>`).join("")}</ul>
       <div class="footer-note">Primary answers are weighted x2, Secondary answers x1.</div>
     </div>
+    <div class="nextsteps">
+  <div style="font-weight:900; letter-spacing:.6px; text-transform:uppercase; color:var(--muted); font-size:12px;">
+    Next Steps
+  </div>
+
+  <div class="mini">
+    Complete your build — confirm your persona or find your Bonded Beast.
+  </div>
+
+  <div style="display:flex; flex-wrap:wrap; gap:14px; margin-top:10px;">
+    <a href="https://dosekhiz.github.io/FMFC/" style="color:var(--gold); font-weight:900; text-decoration:none;">
+      Retake Combat Persona →
+    </a>
+
+    <a href="https://dosekhiz.github.io/FMFC/beast-bond/" style="color:var(--gold); font-weight:900; text-decoration:none;">
+      Find Your Bonded Beast →
+    </a>
+  </div>
+</div>
   `;
 
   document.getElementById("btnRescore").addEventListener("click", () => {
