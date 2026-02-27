@@ -1,0 +1,458 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FMFC Weapon Style Quiz</title>
+  <style>
+    :root{
+      --bg:#0b0f17; --panel:#0f1624; --panel2:#0c1320;
+      --text:#eaf0ff; --muted:#a8b3cf;
+      --accent:#7aa2ff; --accent2:#9bffdd;
+      --border:rgba(255,255,255,.12);
+      --shadow: 0 12px 40px rgba(0,0,0,.45);
+      --radius: 18px;
+      --max: 980px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(122,162,255,.20), transparent 60%),
+                  radial-gradient(900px 700px at 110% 10%, rgba(155,255,221,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+    }
+    .wrap{max-width:var(--max); margin:0 auto; padding:28px 18px 64px;}
+    header{display:flex; flex-direction:column; gap:10px; margin:18px 0 20px;}
+    .badge{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border);
+      border-radius:999px; width:fit-content; background:rgba(255,255,255,.03); color:var(--muted); font-size:12px;}
+    h1{margin:0; font-size:28px; letter-spacing:.2px;}
+    p{margin:0; color:var(--muted); line-height:1.5}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
+      border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow);}
+    .section{padding:18px;}
+    .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content:space-between;}
+    .btn{
+      appearance:none; border:1px solid var(--border); background:rgba(255,255,255,.03);
+      color:var(--text); padding:10px 14px; border-radius:12px; cursor:pointer;
+      transition: transform .06s ease, border-color .15s ease, background .15s ease;
+      font-weight:650;
+    }
+    .btn:hover{border-color:rgba(122,162,255,.55); background:rgba(122,162,255,.08)}
+    .btn:active{transform:translateY(1px)}
+    .btn.primary{border-color:rgba(122,162,255,.75); background:rgba(122,162,255,.12)}
+    .btn.ghost{background:transparent}
+    .divider{height:1px; background:var(--border); margin:0}
+    .q{padding:18px;}
+    .q h2{margin:0 0 8px; font-size:18px;}
+    .q .hint{font-size:13px; color:var(--muted); margin:0 0 14px;}
+    .grid{display:grid; gap:12px;}
+    @media(min-width:760px){ .grid{grid-template-columns: 1fr 1fr;} }
+    .opt{
+      border:1px solid var(--border); border-radius:14px; padding:12px;
+      background:rgba(255,255,255,.03); display:flex; flex-direction:column; gap:8px;
+    }
+    .opt strong{font-size:14px}
+    .opt small{color:var(--muted); line-height:1.4}
+    .pickrow{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    select{
+      width:160px; padding:10px 10px; border-radius:12px; border:1px solid var(--border);
+      background:rgba(0,0,0,.25); color:var(--text); outline:none;
+    }
+    .warn{color:#ffcf66; font-size:13px; margin-top:10px; display:none}
+    .results{padding:18px;}
+    .pill{display:inline-flex; gap:8px; align-items:center; padding:6px 10px; border:1px solid var(--border);
+      border-radius:999px; background:rgba(255,255,255,.03); color:var(--muted); font-size:12px; margin-right:8px; margin-bottom:8px;}
+    .big{font-size:22px; margin:10px 0 6px;}
+    .list{margin:10px 0 0; padding-left:18px; color:var(--muted); line-height:1.6}
+    .footer-note{color:var(--muted); font-size:12px; margin-top:10px}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <header>
+      <div class="badge">FMFC • Weapon Selection • Primary(+2) + Secondary(+1)</div>
+      <h1>Weapon Style Quiz</h1>
+      <p>Each question: choose a <b>Primary</b> answer and a <b>Secondary</b> answer. We weight them and recommend your top weapon + two alternates.</p>
+    </header>
+
+    <div class="card">
+      <div class="section row">
+        <div>
+          <b>How it scores:</b> Damage Type (Stab/Cut/Crush) + Range + Heft.
+          <div class="footer-note">Range buckets: Melee • Melee–Near • Near–Far (includes Near–Ranged) • Far</div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap">
+          <button class="btn ghost" id="btnReset" type="button">Reset</button>
+          <button class="btn primary" id="btnScore" type="button">Get My Weapon</button>
+        </div>
+      </div>
+      <div class="divider"></div>
+
+      <div id="quiz"></div>
+
+      <div class="divider"></div>
+      <div class="results" id="results" style="display:none"></div>
+    </div>
+  </div>
+
+<script>
+/** =========================
+ *  FMFC Weapon Data (Canon)
+ *  Value is intentionally ignored.
+ *  We only use: damageType, heft, range.
+ *  ========================= */
+
+const WEAPONS = [
+  // STAB
+  {type:"Stab", heft:"Light", name:"Dagger", range:"Melee"},
+  {type:"Stab", heft:"Light", name:"Rapier", range:"Melee-Near"},
+  {type:"Stab", heft:"Light", name:"Rope Dart", range:"Near-Far"},
+  {type:"Stab", heft:"Light", name:"Blowgun", range:"Far"},
+  {type:"Stab", heft:"Solid", name:"Katar", range:"Melee"},
+  {type:"Stab", heft:"Solid", name:"Spear", range:"Melee-Near"},
+  {type:"Stab", heft:"Solid", name:"Javelin", range:"Near-Far"},
+  {type:"Stab", heft:"Solid", name:"Shortbow/Longbow", range:"Far"},
+  {type:"Stab", heft:"Heavy", name:"Cinqueda", range:"Melee"},
+  {type:"Stab", heft:"Heavy", name:"Lance", range:"Melee-Near"},
+  {type:"Stab", heft:"Solid", name:"Harpoon", range:"Near-Far"},   // (Solid in your list)
+  {type:"Stab", heft:"Heavy", name:"Arbalest", range:"Far"},
+
+  // CUT
+  {type:"Cut", heft:"Light", name:"Knife", range:"Melee"},
+  {type:"Cut", heft:"Light", name:"Whip", range:"Near-Far"},        // Melee–Far -> Near-Far bucket
+  {type:"Cut", heft:"Light", name:"Short Sword", range:"Melee"},
+  {type:"Cut", heft:"Light", name:"Shuriken", range:"Far"},
+  {type:"Cut", heft:"Solid", name:"Broad Sword", range:"Melee"},
+  {type:"Cut", heft:"Solid", name:"Long Sword", range:"Melee-Near"},
+  {type:"Cut", heft:"Solid", name:"Hand Axe", range:"Near-Far"},
+  {type:"Cut", heft:"Solid", name:"Chakram", range:"Far"},
+  {type:"Cut", heft:"Heavy", name:"Katana / War Axe", range:"Melee"}, // Solid/Heavy -> treat as Heavy for heft signal
+  {type:"Cut", heft:"Heavy", name:"Pole Axe", range:"Melee-Near"},
+  {type:"Cut", heft:"Solid", name:"Kusari Gama", range:"Near-Far"},
+  {type:"Cut", heft:"Solid", name:"Tomahawk", range:"Far"},
+
+  // CRUSH (deduped Knuckle)
+  {type:"Crush", heft:"Light", name:"Knuckle", range:"Melee"},
+  {type:"Crush", heft:"Light", name:"Nunchaku", range:"Melee-Near"},
+  {type:"Crush", heft:"Light", name:"Bolo", range:"Near-Far"},       // Near–Ranged -> Near-Far bucket
+  {type:"Crush", heft:"Light", name:"Sling", range:"Far"},
+  {type:"Crush", heft:"Solid", name:"War Hammer", range:"Melee"},
+  {type:"Crush", heft:"Solid", name:"Flail", range:"Melee-Near"},
+  {type:"Crush", heft:"Solid", name:"Weapon Chain", range:"Near-Far"},
+  {type:"Crush", heft:"Solid", name:"Discus", range:"Far"},
+  {type:"Crush", heft:"Heavy", name:"Barbed Mace", range:"Melee"},   // Solid/Heavy -> Heavy for heft signal
+  {type:"Crush", heft:"Heavy", name:"Morning Star", range:"Melee-Near"},
+  {type:"Crush", heft:"Solid", name:"Throwing Hammer", range:"Near-Far"},
+];
+
+const QUESTIONS = [
+  {
+    id:"q1",
+    title:"Where do you want to win from?",
+    hint:"This sets your core engagement range.",
+    options:[
+      {key:"Melee",      label:"In their face.",          desc:"Pocket fighting, close reads.", score:{range:{Melee:1}}},
+      {key:"Melee-Near", label:"Close, but not smothered.",desc:"Threat bubble + pressure.",    score:{range:{"Melee-Near":1}}},
+      {key:"Near-Far",   label:"Midrange with transitions.",desc:"Angles, spacing, switch-ups.",score:{range:{"Near-Far":1}}},
+      {key:"Far",        label:"From distance.",          desc:"Timing windows, clean lines.",  score:{range:{Far:1}}},
+    ]
+  },
+  {
+    id:"q2",
+    title:"What advantage feels like your way?",
+    hint:"This is your damage-style identity.",
+    options:[
+      {key:"Stab",  label:"One clean opening, one clean finish.", desc:"Deliberate, decisive.", score:{type:{Stab:1}}},
+      {key:"Cut",   label:"Control the tempo with motion and angles.", desc:"Flow, rhythm, coverage.", score:{type:{Cut:1}}},
+      {key:"Crush", label:"Break their plan and force resets.", desc:"Disruption, authority.", score:{type:{Crush:1}}},
+      {key:"Flex",  label:"I adapt — matchup decides.", desc:"Slightly boosts balance.", score:{type:{Stab:0.5,Cut:0.5,Crush:0.5}}},
+    ]
+  },
+  {
+    id:"q3",
+    title:"How much commitment do you enjoy?",
+    hint:"This sets your handling preference (heft).",
+    options:[
+      {key:"Light", label:"Low commitment, high responsiveness.", desc:"Fast, nimble, flexible.", score:{heft:{Light:1}}},
+      {key:"Solid", label:"Balanced commitment.", desc:"Reliable, steady, versatile.", score:{heft:{Solid:1}}},
+      {key:"Heavy", label:"Big commitment if it hits big.", desc:"Authority and payoff.", score:{heft:{Heavy:1}}},
+      {key:"Any",   label:"I can handle anything.", desc:"Small boost to all hefts.", score:{heft:{Light:0.5,Solid:0.5,Heavy:0.5}}},
+    ]
+  },
+  {
+    id:"q4",
+    title:"When the opponent presses you, what’s your instinct?",
+    hint:"This refines range + style together.",
+    options:[
+      {key:"PunishApproach", label:"Create space and punish the approach.", desc:"Keep the line, punish entries.", score:{range:{"Near-Far":1,Far:0.5}, type:{Stab:0.6,Cut:0.4}}},
+      {key:"PocketTrade",    label:"Meet them and out-trade in the pocket.", desc:"Stand your ground.", score:{range:{Melee:1,"Melee-Near":0.5}, type:{Cut:0.5,Crush:0.5}}},
+      {key:"CrashReset",     label:"Crash in and disrupt their rhythm.", desc:"Reset the fight on your terms.", score:{range:{"Melee-Near":1}, type:{Crush:1}}},
+      {key:"CircleFlow",     label:"Circle, flow, and keep options open.", desc:"Keep moving, keep danger.", score:{range:{"Melee-Near":0.5,"Near-Far":1}, type:{Cut:1}}},
+    ]
+  },
+  {
+    id:"q5",
+    title:"What should your threat feel like?",
+    hint:"This is how you want opponents to perceive your weapon.",
+    options:[
+      {key:"Line", label:"A line.", desc:"Straight, precise, lethal.", score:{type:{Stab:1}}},
+      {key:"Zone", label:"A zone.", desc:"Sweeps, arcs, coverage.", score:{type:{Cut:1}}},
+      {key:"Shock",label:"A shockwave.", desc:"Stagger, stop, reset.", score:{type:{Crush:1}}},
+      {key:"Hybrid",label:"A shifting shape.", desc:"Threat changes with angle.", score:{type:{Cut:0.6,Stab:0.4}, range:{"Near-Far":0.4}}},
+    ]
+  },
+  {
+    id:"q6",
+    title:"What kind of skill expression feels most like you?",
+    hint:"Final tie-breaker: what you enjoy mastering.",
+    options:[
+      {key:"AimSpacing", label:"Aim & spacing.", desc:"Positioning, precision, openings.", score:{type:{Stab:1}, range:{"Melee-Near":0.3,"Near-Far":0.3,Far:0.3}}},
+      {key:"TimingFlow", label:"Timing & flow.", desc:"Rhythm, tempo, adaptability.", score:{type:{Cut:1}}},
+      {key:"ReadsPower", label:"Reads & authority.", desc:"Hard calls, disruption, momentum breaks.", score:{type:{Crush:1}, heft:{Heavy:0.3}}},
+      {key:"Mixed",      label:"All of it — situational mastery.", desc:"Small boost to all types.", score:{type:{Stab:0.5,Cut:0.5,Crush:0.5}}},
+    ]
+  },
+];
+
+const WEIGHTS = { primary: 2, secondary: 1 };
+
+function clamp01(n){ return Math.max(0, Math.min(1, n)); }
+
+function makeEmptyScores(){
+  return {
+    type: {Stab:0, Cut:0, Crush:0},
+    range: {Melee:0, "Melee-Near":0, "Near-Far":0, Far:0},
+    heft: {Light:0, Solid:0, Heavy:0}
+  };
+}
+
+function addScore(bucket, add, weight){
+  for (const k in add){
+    bucket[k] = (bucket[k] || 0) + add[k] * weight;
+  }
+}
+
+function renderQuiz(){
+  const quiz = document.getElementById("quiz");
+  quiz.innerHTML = "";
+
+  QUESTIONS.forEach((q, idx) => {
+    const qWrap = document.createElement("div");
+    qWrap.className = "q";
+    qWrap.innerHTML = `
+      <h2>${idx+1}. ${q.title}</h2>
+      <p class="hint">${q.hint}</p>
+      <div class="grid" id="${q.id}-grid"></div>
+      <div class="pickrow" style="margin-top:12px">
+        <span style="color:var(--muted); font-size:13px">Primary (+2):</span>
+        <select id="${q.id}-primary"></select>
+        <span style="color:var(--muted); font-size:13px">Secondary (+1):</span>
+        <select id="${q.id}-secondary"></select>
+      </div>
+      <div class="warn" id="${q.id}-warn">Primary and Secondary can’t be the same. Pick a different Secondary.</div>
+    `;
+    quiz.appendChild(qWrap);
+
+    const grid = qWrap.querySelector(`#${q.id}-grid`);
+    q.options.forEach(opt => {
+      const card = document.createElement("div");
+      card.className = "opt";
+      card.innerHTML = `<strong>${opt.label}</strong><small>${opt.desc}</small>`;
+      grid.appendChild(card);
+    });
+
+    const primary = qWrap.querySelector(`#${q.id}-primary`);
+    const secondary = qWrap.querySelector(`#${q.id}-secondary`);
+
+    // build selects
+    const base = `<option value="" selected disabled>Select…</option>`;
+    primary.innerHTML = base + q.options.map(o => `<option value="${o.key}">${o.label}</option>`).join("");
+    secondary.innerHTML = base + q.options.map(o => `<option value="${o.key}">${o.label}</option>`).join("");
+
+    function validate(){
+      const warn = qWrap.querySelector(`#${q.id}-warn`);
+      if (primary.value && secondary.value && primary.value === secondary.value){
+        warn.style.display = "block";
+        return false;
+      }
+      warn.style.display = "none";
+      return true;
+    }
+    primary.addEventListener("change", validate);
+    secondary.addEventListener("change", validate);
+  });
+}
+
+function getOptionScore(q, key){
+  const opt = q.options.find(o => o.key === key);
+  return opt ? opt.score : null;
+}
+
+function computeScores(){
+  const scores = makeEmptyScores();
+  let valid = true;
+
+  for (const q of QUESTIONS){
+    const p = document.getElementById(`${q.id}-primary`).value;
+    const s = document.getElementById(`${q.id}-secondary`).value;
+
+    if (!p || !s) valid = false;
+    if (p && s && p === s) valid = false;
+
+    const pScore = getOptionScore(q, p);
+    const sScore = getOptionScore(q, s);
+    if (!pScore || !sScore) continue;
+
+    // apply primary
+    if (pScore.type) addScore(scores.type, pScore.type, WEIGHTS.primary);
+    if (pScore.range) addScore(scores.range, pScore.range, WEIGHTS.primary);
+    if (pScore.heft) addScore(scores.heft, pScore.heft, WEIGHTS.primary);
+
+    // apply secondary
+    if (sScore.type) addScore(scores.type, sScore.type, WEIGHTS.secondary);
+    if (sScore.range) addScore(scores.range, sScore.range, WEIGHTS.secondary);
+    if (sScore.heft) addScore(scores.heft, sScore.heft, WEIGHTS.secondary);
+  }
+
+  return {scores, valid};
+}
+
+function topKey(obj){
+  let bestK = null; let bestV = -Infinity;
+  for (const k in obj){
+    if (obj[k] > bestV){ bestV = obj[k]; bestK = k; }
+  }
+  return {key: bestK, value: bestV};
+}
+
+function sortKeys(obj){
+  return Object.keys(obj).sort((a,b) => obj[b]-obj[a]);
+}
+
+function pickWeapons(type, range, heft){
+  // Primary filter: exact match on type+range+heft
+  const exact = WEAPONS.filter(w => w.type===type && w.range===range && w.heft===heft);
+
+  // Secondary pool: same type+range (any heft)
+  const typeRange = WEAPONS.filter(w => w.type===type && w.range===range);
+
+  // Tertiary pool: same type (any range/heft)
+  const typeOnly = WEAPONS.filter(w => w.type===type);
+
+  // Helper to build unique list by name
+  const uniqByName = (arr) => {
+    const seen = new Set();
+    const out = [];
+    for (const w of arr){
+      if (seen.has(w.name)) continue;
+      seen.add(w.name);
+      out.push(w);
+    }
+    return out;
+  };
+
+  // Choose top + two alternates, preferring exact then typeRange then typeOnly
+  const combined = uniqByName([...exact, ...typeRange, ...typeOnly]);
+
+  // If nothing (shouldn't happen), fallback to entire list
+  const fallback = combined.length ? combined : WEAPONS;
+
+  return fallback.slice(0, 3);
+}
+
+function humanRange(r){
+  if (r === "Melee-Near") return "Melee–Near";
+  if (r === "Near-Far") return "Near–Far";
+  return r;
+}
+
+function renderResults(payload){
+  const {scores} = payload;
+
+  const typeRank = sortKeys(scores.type);
+  const rangeRank = sortKeys(scores.range);
+  const heftRank = sortKeys(scores.heft);
+
+  const bestType = typeRank[0];
+  const bestRange = rangeRank[0];
+  const bestHeft = heftRank[0];
+
+  const weapons = pickWeapons(bestType, bestRange, bestHeft);
+  const top = weapons[0];
+  const alts = weapons.slice(1);
+
+  // “Why” bullets: show what won, plus runner-ups
+  const why = [];
+  why.push(`You lean <b>${bestType.toUpperCase()}</b> (runner-up: ${typeRank[1].toUpperCase()}).`);
+  why.push(`You prefer <b>${humanRange(bestRange)}</b> engagement (runner-up: ${humanRange(rangeRank[1])}).`);
+  why.push(`You like <b>${bestHeft}</b> handling (runner-up: ${heftRank[1]}).`);
+
+  const res = document.getElementById("results");
+  res.style.display = "block";
+  res.innerHTML = `
+    <div class="row" style="gap:10px">
+      <div>
+        <div class="pill">Damage: <b style="color:var(--text)">${bestType}</b></div>
+        <div class="pill">Range: <b style="color:var(--text)">${humanRange(bestRange)}</b></div>
+        <div class="pill">Heft: <b style="color:var(--text)">${bestHeft}</b></div>
+      </div>
+      <button class="btn" type="button" id="btnRescore">Rescore</button>
+    </div>
+
+    <div class="big"><b>Your Weapon:</b> ${top.name}</div>
+    <p style="color:var(--muted); margin:0 0 10px">
+      <b>${top.type}</b> • <b>${top.heft}</b> • <b>${humanRange(top.range)}</b>
+    </p>
+
+    <div class="section" style="padding:0; margin-top:8px">
+      <b>Alternates:</b>
+      <ul class="list">
+        ${alts.map(w => `<li>${w.name} — <b>${w.heft}</b>, <b>${humanRange(w.range)}</b></li>`).join("")}
+      </ul>
+    </div>
+
+    <div style="margin-top:12px">
+      <b>Why this fits:</b>
+      <ul class="list">${why.map(x => `<li>${x}</li>`).join("")}</ul>
+      <div class="footer-note">Primary answers are weighted x2, Secondary answers x1.</div>
+    </div>
+  `;
+
+  document.getElementById("btnRescore").addEventListener("click", () => {
+    res.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+}
+
+function resetAll(){
+  QUESTIONS.forEach(q => {
+    const p = document.getElementById(`${q.id}-primary`);
+    const s = document.getElementById(`${q.id}-secondary`);
+    if (p) p.value = "";
+    if (s) s.value = "";
+    const warn = document.getElementById(`${q.id}-warn`);
+    if (warn) warn.style.display = "none";
+  });
+  const res = document.getElementById("results");
+  res.style.display = "none";
+  res.innerHTML = "";
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+renderQuiz();
+
+document.getElementById("btnScore").addEventListener("click", () => {
+  const payload = computeScores();
+  if (!payload.valid){
+    alert("Finish every question with a Primary and a Secondary choice (and don’t duplicate the same option).");
+    return;
+  }
+  renderResults(payload);
+  document.getElementById("results").scrollIntoView({behavior:"smooth", block:"start"});
+});
+
+document.getElementById("btnReset").addEventListener("click", resetAll);
+</script>
+</body>
+</html>
