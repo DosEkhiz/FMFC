@@ -98,14 +98,6 @@
     .pair .line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
     .pair .big{font-size:18px;font-weight:900;letter-spacing:.6px}
     .pair .small{color:var(--muted);font-size:12px}
-    .tier{
-      margin-top:14px;
-      display:inline-flex;align-items:center;gap:8px;
-      border:1px solid #3a3d55;border-radius:999px;padding:6px 10px;
-      background:rgba(255,255,255,0.03);
-      font-weight:900;letter-spacing:.8px;text-transform:uppercase;font-size:12px;
-    }
-    .tier b{color:var(--gold)}
     .twoCol{display:grid;grid-template-columns:1fr;gap:12px;margin-top:14px}
     @media(min-width:760px){ .twoCol{grid-template-columns:1fr 1fr;} }
     .scores{display:none;}
@@ -115,10 +107,10 @@
   <div class="wrap">
     <div class="top">
       <div class="pill">Full Moon Fight Club • Bonded Beast</div>
-      <h1>Find the partner that makes you dangerous.</h1>
+      <h1>Choose the Bond that completes you.</h1>
       <div class="sub">
-        Choose <b>exactly two</b> answers per question. Keep it instinctual.
-        Your Bond recommendations are revealed <bonly at the end</b>.
+        First, select your <b>fighter persona</b>. Then answer 6 questions:
+        choose <b>exactly two</b> options each. Your two Bond recommendations appear at the end.
       </div>
       <div class="bar" aria-label="progress">
         <div id="progress"></div>
@@ -129,80 +121,42 @@
   </div>
 
 <script>
-/** ====== CANON ARCHETYPES (hidden until results) ====== */
-const WEIGHTS = {
-  duelist:     { primary: "duelist",     adj: ["controller","executioner"] },
-  dominator:   { primary: "dominator",   adj: ["executioner","juggernaut"] },
-  anchor:      { primary: "anchor",      adj: ["controller","juggernaut"] },
-  executioner: { primary: "executioner", adj: ["duelist","dominator"] },
-  controller:  { primary: "controller",  adj: ["duelist","anchor"] },
-  juggernaut:  { primary: "juggernaut",  adj: ["anchor","dominator"] },
-};
-
+/** ====== CANON ARCHETYPES ====== */
 const ARCHETYPES = {
-  duelist: {
-    name: "THE DUELIST",
-    meta: "Finesse (₪Ꚛ)",
-    bondRole: "Precision Assist",
-    body: [
-      "A Bonded Beast that sees the opening before it exists.",
-      "It sharpens exchanges, punishes mistakes, and keeps your wins clean."
-    ],
-    bullets: ["Punish openings", "Win on timing", "Turn defense into advantage"],
-  },
-  dominator: {
-    name: "THE DOMINATOR",
-    meta: "Impact (₪Ͽ)",
-    bondRole: "Tempo Accelerant",
-    body: [
-      "A Bonded Beast that forces decisions.",
-      "It creates pressure, collapses space, and makes hesitation lethal."
-    ],
-    bullets: ["Create pressure", "Commit first", "Break momentum"],
-  },
-  anchor: {
-    name: "THE ANCHOR",
-    meta: "Grit (₪Ø)",
-    bondRole: "Stabilizer",
-    body: [
-      "A Bonded Beast that keeps you alive when the fight turns ugly.",
-      "It absorbs chaos, buys time, and turns endurance into advantage."
-    ],
-    bullets: ["Outlast swings", "Stay composed", "Refuse to fall"],
-  },
-  executioner: {
-    name: "THE EXECUTIONER",
-    meta: "Impact + Finesse (ϿꚚ)",
-    bondRole: "Converter",
-    body: [
-      "A Bonded Beast that turns advantage into the end.",
-      "It waits, watches, then finishes decisively the moment it’s possible."
-    ],
-    bullets: ["Punish hard", "Convert openings", "End exchanges"],
-  },
-  controller: {
-    name: "THE CONTROLLER",
-    meta: "Finesse + Grit (ꚚØ)",
-    bondRole: "Fight Architect",
-    body: [
-      "A Bonded Beast that makes the arena feel smaller for them and bigger for you.",
-      "It controls pace, positioning, and makes chaos predictable."
-    ],
-    bullets: ["Control pace", "Own positioning", "Turn chaos into order"],
-  },
-  juggernaut: {
-    name: "THE JUGGERNAUT",
-    meta: "Grit + Impact (ØϿ)",
-    bondRole: "Collision Engine",
-    body: [
-      "A Bonded Beast that moves bodies and reshapes space.",
-      "It wins by displacement, pressure, and inevitable collision."
-    ],
-    bullets: ["Take space", "Force movement", "Win by pressure + mass"],
-  },
+  duelist: { name:"THE DUELIST", meta:"Finesse (₪Ꚛ)", bondRole:"Precision Assist",
+    body:["A Bonded Beast that sees the opening before it exists.","It sharpens exchanges, punishes mistakes, and keeps your wins clean."],
+    bullets:["Punish openings","Win on timing","Turn defense into advantage"] },
+  dominator: { name:"THE DOMINATOR", meta:"Impact (₪Ͽ)", bondRole:"Tempo Accelerant",
+    body:["A Bonded Beast that forces decisions.","It creates pressure, collapses space, and makes hesitation lethal."],
+    bullets:["Create pressure","Commit first","Break momentum"] },
+  anchor: { name:"THE ANCHOR", meta:"Grit (₪Ø)", bondRole:"Stabilizer",
+    body:["A Bonded Beast that keeps you alive when the fight turns ugly.","It absorbs chaos, buys time, and turns endurance into advantage."],
+    bullets:["Outlast swings","Stay composed","Refuse to fall"] },
+  executioner: { name:"THE EXECUTIONER", meta:"Impact + Finesse (ϿꚚ)", bondRole:"Converter",
+    body:["A Bonded Beast that turns advantage into the end.","It waits, watches, then finishes decisively the moment it’s possible."],
+    bullets:["Punish hard","Convert openings","End exchanges"] },
+  controller: { name:"THE CONTROLLER", meta:"Finesse + Grit (ꚚØ)", bondRole:"Fight Architect",
+    body:["A Bonded Beast that makes chaos predictable.","It controls pace, positioning, and denies traps."],
+    bullets:["Control pace","Own positioning","Turn chaos into order"] },
+  juggernaut: { name:"THE JUGGERNAUT", meta:"Grit + Impact (ØϿ)", bondRole:"Collision Engine",
+    body:["A Bonded Beast that reshapes space through force.","It wins by displacement, pressure, and collision."],
+    bullets:["Take space","Force movement","Win by pressure + mass"] },
 };
 
-/** ====== FILL-GAP COMPLEMENTS (results only) ====== */
+const ORDER = ["duelist","dominator","anchor","executioner","controller","juggernaut"];
+
+/** ====== PERSONA → LEAN / GAP PAIRS (calibration) ======
+ * Lean In = adjacencies from your canon WEIGHTS map.
+ * Fill Gap = complements (2 options) per persona.
+ */
+const LEAN_IN = {
+  duelist:     ["controller","executioner"],
+  dominator:   ["executioner","juggernaut"],
+  anchor:      ["controller","juggernaut"],
+  executioner: ["duelist","dominator"],
+  controller:  ["duelist","anchor"],
+  juggernaut:  ["anchor","dominator"],
+};
 const FILL_GAP = {
   duelist:     ["anchor","juggernaut"],
   dominator:   ["controller","anchor"],
@@ -212,7 +166,7 @@ const FILL_GAP = {
   juggernaut:  ["duelist","controller"],
 };
 
-/** ====== QUESTIONS (no archetype labels visible) ====== */
+/** ====== QUIZ QUESTIONS (archetypes hidden) ====== */
 const QUESTIONS = [
   {
     prompt: "When the fight goes sideways, you want your Bonded Beast to:",
@@ -285,66 +239,35 @@ const QUESTIONS = [
 const EXACT_PICKS = 2;
 
 /** ====== STATE ====== */
+let stage = "persona"; // persona -> quiz -> result
 let qIndex = 0;
+let fighterPersona = null;
 const answers = QUESTIONS.map(() => new Set());
 
-/** ====== SCORE ENGINE (same as your persona quiz) ====== */
+/** ====== SCORING (Bond preference signal) ======
+ * We keep scoring simple: each selected option adds +1 to that key.
+ * (You could re-add adjacency scoring later if you want, but it isn't needed now because
+ * lean/gap calibrates off the chosen fighter persona.)
+ */
 function emptyScores(){
   return { duelist:0, dominator:0, anchor:0, executioner:0, controller:0, juggernaut:0 };
-}
-function applyAffinity(scores, archetypeKey){
-  const w = WEIGHTS[archetypeKey];
-  scores[w.primary] += 2;
-  scores[w.adj[0]] += 1;
-  scores[w.adj[1]] += 1;
 }
 function computeScores(){
   const scores = emptyScores();
   QUESTIONS.forEach((q, qi) => {
     for (const optIndex of answers[qi]) {
-      applyAffinity(scores, q.options[optIndex].key);
+      const key = q.options[optIndex].key;
+      scores[key] += 1;
     }
   });
   return scores;
 }
-function computeWinner(scores){
-  const entries = Object.entries(scores).sort((a,b)=>b[1]-a[1]);
-  const [topKey, topVal] = entries[0];
-  const [secondKey, secondVal] = entries[1];
-  return { topKey, topVal, secondKey, secondVal, sorted: entries };
-}
-function computeTier(scores, winner){
-  const lead = winner.topVal - winner.secondVal;
-  const total = Object.values(scores).reduce((a,b)=>a+b,0);
-  const concentration = total > 0 ? (winner.topVal / total) : 0;
-
-  if (lead >= 6 || concentration >= 0.26) return "DOMINANT";
-  if (lead >= 3 || concentration >= 0.21) return "STRONG";
-  return "EMERGING";
-}
-
-/** ====== RECOMMENDATION HELPERS ====== */
 function bestOf(keys, scores){
   let best = keys[0], bestV = -Infinity;
   for (const k of keys){
-    if (scores[k] > bestV){
-      bestV = scores[k];
-      best = k;
-    }
+    if (scores[k] > bestV){ bestV = scores[k]; best = k; }
   }
   return best;
-}
-function computeLeanIn(winner, scores){
-  const primary = winner.topKey;
-  const adj = WEIGHTS[primary].adj;
-  const partner = bestOf(adj, scores); // strict: adjacencies only
-  return { primary, partner };
-}
-function computeFillGap(winner, scores){
-  const primary = winner.topKey;
-  const complements = FILL_GAP[primary] || [];
-  const partner = bestOf(complements, scores); // strict: complements only
-  return { primary, partner };
 }
 
 /** ====== UI ====== */
@@ -352,11 +275,76 @@ const app = document.getElementById("app");
 const progressEl = document.getElementById("progress");
 
 function render(){
-  const pct = Math.round((qIndex / QUESTIONS.length) * 100);
+  // progress: persona stage = 0, quiz stage = qIndex/6, result stage = 100%
+  const pct = stage === "persona" ? 0
+            : stage === "quiz" ? Math.round((qIndex / QUESTIONS.length) * 100)
+            : 100;
   progressEl.style.width = `${pct}%`;
 
+  if (stage === "persona") return renderPersonaPick();
+  if (stage === "quiz") return renderQuestion();
+  return renderResult();
+}
+
+function renderPersonaPick(){
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead">
+        <div>
+          <div class="qnum">SETUP</div>
+          <div class="qtitle">What’s your fighter persona?</div>
+        </div>
+        <div class="hint">Required • Choose one</div>
+      </div>
+
+      <div class="opts">
+        ${ORDER.map(k => {
+          const a = ARCHETYPES[k];
+          const checked = (fighterPersona === k) ? "checked" : "";
+          return `
+            <label class="opt">
+              <input type="radio" name="persona" value="${k}" ${checked}/>
+              <div class="txt">
+                <div style="font-weight:900">${escapeHtml(a.name)}</div>
+                <div style="color:var(--muted); font-size:12px; margin-top:4px">${escapeHtml(a.meta)}</div>
+              </div>
+            </label>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="row">
+        <div class="err" id="err">Select your fighter persona to continue.</div>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button class="primary" id="start">Start Bond Quiz</button>
+        </div>
+      </div>
+      <div class="mini">This does not influence your answers — it only calibrates “Lean In” vs “Fill the Gap.”</div>
+    </div>
+  `;
+
+  app.querySelectorAll('input[name="persona"]').forEach(r => {
+    r.addEventListener("change", (e) => {
+      fighterPersona = e.target.value;
+      hideError();
+    });
+  });
+
+  app.querySelector("#start").addEventListener("click", () => {
+    if (!fighterPersona){
+      showError();
+      return;
+    }
+    stage = "quiz";
+    qIndex = 0;
+    render();
+  });
+}
+
+function renderQuestion(){
   if (qIndex >= QUESTIONS.length){
-    renderResult();
+    stage = "result";
+    render();
     return;
   }
 
@@ -429,15 +417,6 @@ function render(){
   });
 }
 
-function showError(){
-  const el = app.querySelector("#err");
-  if (el){ el.style.display = "block"; }
-}
-function hideError(){
-  const el = app.querySelector("#err");
-  if (el){ el.style.display = "none"; }
-}
-
 function renderArchetypeCard(label, key){
   const a = ARCHETYPES[key];
   return `
@@ -462,26 +441,23 @@ function renderResult(){
   progressEl.style.width = `100%`;
 
   const scores = computeScores();
-  const winner = computeWinner(scores);
-  const tier = computeTier(scores, winner);
 
-  const lean = computeLeanIn(winner, scores);
-  const gap = computeFillGap(winner, scores);
-
-  const tierLine = (tier === "DOMINANT")
-    ? "Clear primacy — your answers concentrate here."
-    : (tier === "STRONG")
-      ? "Strong primacy — this is your main pull under pressure."
-      : "Emerging primacy — your bond style is still flexible.";
+  // Calibrated recommendations based on fighter persona:
+  // - Lean In comes from the fighter persona's lean-in set, choosing the one the quiz answers favor most.
+  // - Fill Gap comes from the fighter persona's fill-gap set, choosing the one the quiz answers favor most.
+  const leanPartner = bestOf(LEAN_IN[fighterPersona], scores);
+  const gapPartner  = bestOf(FILL_GAP[fighterPersona], scores);
 
   app.innerHTML = `
     <div class="result">
       <div class="rmeta">RESULT • TWO BONDED BEAST RECOMMENDATIONS</div>
-      <div class="tier"><span>Primacy:</span> <b>${escapeHtml(tier)}</b> <span>— ${escapeHtml(tierLine)}</span></div>
+      <div class="mini" style="margin-top:8px">
+        Calibrated from your fighter persona: <b>${escapeHtml(ARCHETYPES[fighterPersona].name)}</b>
+      </div>
 
       <div class="twoCol" style="margin-top:14px">
-        ${renderArchetypeCard("Lean In Bond (Amplify Your Style)", lean.partner)}
-        ${renderArchetypeCard("Fill the Gap Bond (Cover Your Weakness)", gap.partner)}
+        ${renderArchetypeCard("Lean In Bond (Amplify Your Style)", leanPartner)}
+        ${renderArchetypeCard("Fill the Gap Bond (Cover Your Weakness)", gapPartner)}
       </div>
 
       <div class="row" style="margin-top:16px">
@@ -498,6 +474,8 @@ function renderResult(){
   `;
 
   app.querySelector("#restart").addEventListener("click", () => {
+    stage = "persona";
+    fighterPersona = null;
     qIndex = 0;
     for (let i=0;i<answers.length;i++) answers[i] = new Set();
     render();
@@ -505,7 +483,7 @@ function renderResult(){
 
   app.querySelector("#copy").addEventListener("click", async () => {
     const text =
-      `FMFC Bonded Beast Quiz — Lean In: ${ARCHETYPES[lean.partner].name} • Fill the Gap: ${ARCHETYPES[gap.partner].name} • Primacy: ${tier}`;
+      `FMFC Bonded Beast Quiz — Fighter: ${ARCHETYPES[fighterPersona].name} • Lean In: ${ARCHETYPES[leanPartner].name} • Fill the Gap: ${ARCHETYPES[gapPartner].name}`;
     try{
       await navigator.clipboard.writeText(text);
       app.querySelector("#copy").textContent = "Copied";
@@ -514,6 +492,15 @@ function renderResult(){
       alert(text);
     }
   });
+}
+
+function showError(){
+  const el = app.querySelector("#err");
+  if (el){ el.style.display = "block"; }
+}
+function hideError(){
+  const el = app.querySelector("#err");
+  if (el){ el.style.display = "none"; }
 }
 
 function escapeHtml(str){
