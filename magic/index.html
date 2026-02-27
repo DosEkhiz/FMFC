@@ -1,0 +1,644 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Full Moon Fight Club — Temple Affinity Quiz</title>
+  <style>
+    :root{
+      --bg:#07070a;
+      --panel:#0f1016;
+      --panel2:#0b0c12;
+      --text:#f2f2f2;
+      --muted:#b8b8c2;
+      --gold:#d6b25e;
+      --line:#262837;
+      --bad:#ff6b6b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 30% 0%, #121322 0%, var(--bg) 55%, #05050a 100%);
+      color:var(--text);
+      letter-spacing:.2px;
+    }
+    .wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px;}
+    .top{
+      display:flex;flex-direction:column;gap:8px;margin:8px 0 18px 0;
+      border:1px solid var(--line); border-radius:16px; padding:18px 16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+    }
+    h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.6px}
+    .sub{color:var(--muted); font-size:14px; line-height:1.4}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--gold); font-weight:700; font-size:12px; letter-spacing:1px;
+      text-transform:uppercase;
+    }
+    .bar{
+      margin-top:10px;
+      height:10px;border-radius:999px;background:#11121b;border:1px solid var(--line);
+      overflow:hidden;
+    }
+    .bar > div{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff1b1);}
+    .card{
+      margin-top:14px;
+      border:1px solid var(--line); border-radius:16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+      padding:18px 16px;
+    }
+    .qhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap}
+    .qnum{color:var(--gold);font-weight:800;letter-spacing:1px}
+    .qtitle{font-size:18px;font-weight:800;margin:6px 0 0 0}
+    .hint{color:var(--muted);font-size:13px}
+    .opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+    .opt{
+      display:flex;gap:12px;align-items:flex-start;
+      padding:12px 12px;border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      cursor:pointer;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+    }
+    .opt:hover{border-color:#3a3d55;background:rgba(255,255,255,0.04)}
+    .opt input{margin-top:3px; transform:scale(1.1)}
+    .opt .txt{line-height:1.25}
+    .tagrow{display:flex; gap:10px; flex-wrap:wrap; margin-top:6px; color:var(--muted); font-size:12px}
+    .tagrow b{color:var(--gold)}
+    .star{
+      margin-left:auto;
+      border:1px solid #3a3d55;
+      border-radius:999px;
+      padding:6px 10px;
+      background:rgba(255,255,255,0.03);
+      color:var(--text);
+      font-weight:900;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+      font-size:11px;
+      cursor:pointer;
+      display:none;
+    }
+    .star.on{
+      border-color:#6a5a2c;
+      color:var(--gold);
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+    }
+    .star.off{
+      display:inline-flex;
+      opacity:.85;
+    }
+    .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap}
+    .err{color:var(--bad);font-weight:700;font-size:13px;display:none}
+    button{
+      appearance:none;border:1px solid var(--line);
+      background:#141628;color:var(--text);
+      padding:10px 14px;border-radius:12px;
+      font-weight:800; letter-spacing:.4px;
+      cursor:pointer;
+    }
+    button.primary{
+      background: linear-gradient(180deg, #1a1c2f, #111225);
+      border-color:#3a3d55;
+    }
+    button.primary:hover{border-color:#6a5a2c}
+    button:disabled{opacity:.45;cursor:not-allowed}
+
+    .result{
+      border:1px solid var(--line); border-radius:16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+      padding:22px 16px;margin-top:16px;
+    }
+    .rtitle{display:flex;flex-direction:column;gap:6px}
+    .rname{font-size:26px;font-weight:900;letter-spacing:1px}
+    .rmeta{color:var(--gold);font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:12px}
+    .pair{
+      margin-top:14px;
+      border:1px solid #2a2d41;
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .pair h3{margin:0 0 6px 0; font-size:14px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)}
+    .pair .line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+    .pair .big{font-size:18px;font-weight:900;letter-spacing:.6px}
+    .pair .small{color:var(--muted);font-size:12px}
+    .tier{
+      margin-top:10px;
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid #3a3d55;border-radius:999px;padding:6px 10px;
+      background:rgba(255,255,255,0.03);
+      font-weight:900;letter-spacing:.8px;text-transform:uppercase;font-size:12px;
+    }
+    .tier b{color:var(--gold)}
+    .mini{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.5}
+    .shadow{
+      margin-top:14px;
+      border:1px solid #2a2d41;
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .shadow h3{margin:0 0 6px 0; font-size:14px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)}
+    .shadow p{margin:0; color:var(--text); line-height:1.55}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill">Full Moon Fight Club • Temple Affinity</div>
+      <h1>Discover which Temples call your name.</h1>
+      <div class="sub">
+        Choose <b>exactly two</b> answers per question.
+        Then mark one as <b>Primary</b> (★) and one as <b>Secondary</b>.
+      </div>
+      <div class="bar" aria-label="progress">
+        <div id="progress"></div>
+      </div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+
+<script>
+/** ====== TEMPLE CONFIG ====== */
+const TEMPLES = ["radiant","fluid","breath","ground","primal","cosmic"];
+
+const TEMPLE_LABEL = {
+  radiant: "Radiant Temple",
+  fluid: "Fluid Temple",
+  breath: "Breath Temple",
+  ground: "Ground Temple",
+  primal: "Primal Temple",
+  cosmic: "Cosmic Temple",
+};
+
+const TEMPLE_META = {
+  radiant: "Fire • Light • Charge",
+  fluid: "Water • Ether & Ichor",
+  breath: "Air • Motion",
+  ground: "Stone • Metal",
+  primal: "Life • Death • Nature",
+  cosmic: "Light • Shadow • Noise",
+};
+
+const OPPOSITION_MAP = {
+  radiant: "cosmic",
+  cosmic: "radiant",
+  fluid: "ground",
+  ground: "breath",
+  breath: "ground",
+  primal: "radiant",
+};
+
+const SHADOW_BLURB = {
+  radiant:
+    "Radiant asks for decisive activation — a willingness to force clarity when the moment demands it. If this current unsettles you, you may hesitate at the threshold of action, waiting for certainty that never fully arrives.",
+  fluid:
+    "Fluid teaches surrender without collapse — to change shape and remain yourself. If this current unsettles you, adaptation can feel like losing control, and yielding can feel like defeat.",
+  breath:
+    "Breath teaches motion with purpose — to shift, escape, and re-enter on your terms. If this current unsettles you, you may cling to fixed ground when movement would save you.",
+  ground:
+    "Ground teaches structure and commitment — what you build, you must carry. If this current unsettles you, permanence can feel like a trap, and discipline can feel like suffocation.",
+  primal:
+    "Primal teaches the cycle — growth, decay, renewal, inevitability. If this current unsettles you, instinct and endings can feel too raw, too uncontrollable, too close to the bone.",
+  cosmic:
+    "Cosmic teaches perception — that reality is often a veil of interpretation. If this current unsettles you, ambiguity can irritate you, and paradox can feel like a threat to what you trust.",
+};
+
+const WEIGHTS = { primary: 2, secondary: 1 };
+const EXACT_PICKS = 2;
+
+/** ====== QUESTIONS (mythic, not on-the-nose) ====== */
+const QUESTIONS = [
+  {
+    prompt: "When the world tightens around you, you:",
+    options: [
+      { text: "Step forward and force clarity.", temple:"radiant" },
+      { text: "Change shape and move through it.", temple:"fluid" },
+      { text: "Shift position and escape the bind.", temple:"breath" },
+      { text: "Plant your feet and endure.", temple:"ground" },
+      { text: "Fall back on instinct.", temple:"primal" },
+      { text: "Withdraw and reassess the pattern.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "Power, to you, is:",
+    options: [
+      { text: "The spark that compels action.", temple:"radiant" },
+      { text: "The current that reshapes itself.", temple:"fluid" },
+      { text: "The freedom to move unhindered.", temple:"breath" },
+      { text: "The weight that does not yield.", temple:"ground" },
+      { text: "The cycle that outlives destruction.", temple:"primal" },
+      { text: "The truth beneath appearances.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "Conflict should be:",
+    options: [
+      { text: "Confronted and resolved.", temple:"radiant" },
+      { text: "Redirected and absorbed.", temple:"fluid" },
+      { text: "Outmaneuvered.", temple:"breath" },
+      { text: "Withstood.", temple:"ground" },
+      { text: "Allowed to reveal its natural end.", temple:"primal" },
+      { text: "Understood before it is answered.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "You trust most:",
+    options: [
+      { text: "Conviction.", temple:"radiant" },
+      { text: "Flexibility.", temple:"fluid" },
+      { text: "Awareness of movement.", temple:"breath" },
+      { text: "Structure.", temple:"ground" },
+      { text: "Instinct.", temple:"primal" },
+      { text: "Perception.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "What unsettles you most?",
+    options: [
+      { text: "Hesitation at a decisive moment.", temple:"radiant" },
+      { text: "Rigidity that refuses to change.", temple:"fluid" },
+      { text: "Being confined.", temple:"breath" },
+      { text: "Disorder without foundation.", temple:"ground" },
+      { text: "Sterile lifelessness.", temple:"primal" },
+      { text: "Blind certainty.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "In a gathering, you are:",
+    options: [
+      { text: "The one who begins.", temple:"radiant" },
+      { text: "The one who adapts.", temple:"fluid" },
+      { text: "The one who scouts.", temple:"breath" },
+      { text: "The one who steadies.", temple:"ground" },
+      { text: "The one who senses the undercurrent.", temple:"primal" },
+      { text: "The one who observes quietly.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "Change should:",
+    options: [
+      { text: "Be initiated deliberately.", temple:"radiant" },
+      { text: "Be navigated fluidly.", temple:"fluid" },
+      { text: "Be swift and clean.", temple:"breath" },
+      { text: "Be resisted until proven necessary.", temple:"ground" },
+      { text: "Follow its natural season.", temple:"primal" },
+      { text: "Be examined before embraced.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "Your strength reveals itself through:",
+    options: [
+      { text: "Decisive action.", temple:"radiant" },
+      { text: "Adaptive response.", temple:"fluid" },
+      { text: "Agile repositioning.", temple:"breath" },
+      { text: "Steadfast endurance.", temple:"ground" },
+      { text: "Instinctual timing.", temple:"primal" },
+      { text: "Insightful interpretation.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "When something ends, you:",
+    options: [
+      { text: "Rekindle and begin again.", temple:"radiant" },
+      { text: "Transform what remains.", temple:"fluid" },
+      { text: "Move forward without attachment.", temple:"breath" },
+      { text: "Preserve what can endure.", temple:"ground" },
+      { text: "Accept it as part of the greater cycle.", temple:"primal" },
+      { text: "Seek meaning in its conclusion.", temple:"cosmic" },
+    ]
+  },
+  {
+    prompt: "Mastery feels like:",
+    options: [
+      { text: "Commanding energy.", temple:"radiant" },
+      { text: "Flowing without resistance.", temple:"fluid" },
+      { text: "Moving unhindered.", temple:"breath" },
+      { text: "Building something that lasts.", temple:"ground" },
+      { text: "Harmony with growth and decay.", temple:"primal" },
+      { text: "Seeing beyond the visible.", temple:"cosmic" },
+    ]
+  },
+];
+
+/** ====== STATE ====== */
+let qIndex = 0;
+// answers[qi] = Set of selected option indices (size 0..2)
+const answers = QUESTIONS.map(() => new Set());
+// primaryPick[qi] = option index that is primary among selected (or null)
+const primaryPick = QUESTIONS.map(() => null);
+
+/** ====== SCORING ENGINE ====== */
+function emptyScores(){
+  return { radiant:0, fluid:0, breath:0, ground:0, primal:0, cosmic:0 };
+}
+function rankScores(scores){
+  return Object.entries(scores).sort((a,b)=>b[1]-a[1]);
+}
+function computeShadowTemple(ranked, primaryTemple){
+  const lowestVal = ranked[ranked.length - 1][1];
+  const lowestTemples = ranked.filter(([k,v])=>v===lowestVal).map(([k])=>k);
+  if (lowestTemples.length === 1) return lowestTemples[0];
+
+  const opposed = OPPOSITION_MAP[primaryTemple];
+  if (opposed && lowestTemples.includes(opposed)) return opposed;
+
+  return lowestTemples[0];
+}
+function computePrimaryTier(scores, ranked){
+  const topVal = ranked[0][1];
+  const secondVal = ranked[1][1];
+  const lead = topVal - secondVal;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0) || 1;
+  const concentration = topVal / total;
+
+  if (lead >= 6 || concentration >= 0.35) return "DOMINANT";
+  if (lead >= 3 || concentration >= 0.28) return "STRONG";
+  return "EMERGING";
+}
+function computeSecondaryTier(ranked, scores){
+  const secondVal = ranked[1][1];
+  const thirdVal = ranked[2][1];
+  const secGap = secondVal - thirdVal;
+
+  if (secGap >= 4) return "STRONG";
+  if (secGap >= 2) return "RESONANT";
+  return "EMERGING";
+}
+
+function computeTempleAffinity(){
+  const scores = emptyScores();
+
+  for (let qi=0; qi<QUESTIONS.length; qi++){
+    const set = answers[qi];
+    if (set.size !== 2) continue;
+
+    const picked = Array.from(set);
+    const pIdx = primaryPick[qi];
+    const sIdx = picked.find(i => i !== pIdx);
+
+    const pTemple = QUESTIONS[qi].options[pIdx].temple;
+    const sTemple = QUESTIONS[qi].options[sIdx].temple;
+
+    scores[pTemple] += WEIGHTS.primary;
+    scores[sTemple] += WEIGHTS.secondary;
+  }
+
+  const ranked = rankScores(scores);
+  const primaryTemple = ranked[0][0];
+  const secondaryTemple = ranked[1][0];
+
+  const primaryTier = computePrimaryTier(scores, ranked);
+  const secondaryTier = computeSecondaryTier(ranked, scores);
+  const shadowTemple = computeShadowTemple(ranked, primaryTemple);
+
+  return { scores, ranked, primaryTemple, primaryTier, secondaryTemple, secondaryTier, shadowTemple };
+}
+
+/** ====== UI ====== */
+const app = document.getElementById("app");
+const progressEl = document.getElementById("progress");
+
+function render(){
+  const pct = Math.round((qIndex / QUESTIONS.length) * 100);
+  progressEl.style.width = `${pct}%`;
+
+  if (qIndex >= QUESTIONS.length){
+    renderResult();
+    return;
+  }
+
+  const q = QUESTIONS[qIndex];
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead">
+        <div>
+          <div class="qnum">QUESTION ${qIndex+1} / ${QUESTIONS.length}</div>
+          <div class="qtitle">${escapeHtml(q.prompt)}</div>
+          <div class="tagrow">
+            Choose <b>${EXACT_PICKS}</b>. Mark one as <b>Primary</b> (★).
+          </div>
+        </div>
+        <div class="hint">Primary (+2) • Secondary (+1)</div>
+      </div>
+
+      <div class="opts">
+        ${q.options.map((opt, i) => {
+          const checked = answers[qIndex].has(i) ? "checked" : "";
+          const isSelected = answers[qIndex].has(i);
+          const isPrimary = (primaryPick[qIndex] === i);
+          const starClass = isSelected ? (isPrimary ? "star on" : "star off") : "star";
+          const starText = isPrimary ? "★ Primary" : "Set Primary";
+          const starStyle = isSelected ? "" : "style='display:none'";
+
+          return `
+            <label class="opt" data-opt="${i}">
+              <input type="checkbox" data-idx="${i}" ${checked} />
+              <div class="txt">
+                ${escapeHtml(opt.text)}
+                <div style="margin-top:6px; color:var(--muted); font-size:12px;">
+                  ${escapeHtml(TEMPLE_LABEL[opt.temple])} • ${escapeHtml(TEMPLE_META[opt.temple])}
+                </div>
+              </div>
+              <button type="button" class="${starClass}" data-star="${i}" ${starStyle}>${starText}</button>
+            </label>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="row">
+        <div class="err" id="err">Choose exactly ${EXACT_PICKS} and set a Primary (★) to continue.</div>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button id="back" ${qIndex===0 ? "disabled":""}>Back</button>
+          <button class="primary" id="next">Next</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // checkbox behavior
+  app.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const idx = parseInt(e.target.dataset.idx, 10);
+      const set = answers[qIndex];
+
+      if (e.target.checked){
+        if (set.size >= EXACT_PICKS){
+          e.target.checked = false;
+          return;
+        }
+        set.add(idx);
+
+        // if this is the first pick, auto-set primary
+        if (set.size === 1){
+          primaryPick[qIndex] = idx;
+        }
+        // if second pick and primary not set (shouldn't happen), set it
+        if (set.size === 2 && primaryPick[qIndex] === null){
+          primaryPick[qIndex] = idx;
+        }
+      } else {
+        set.delete(idx);
+
+        // if you unchecked the primary, assign primary to the remaining pick (or null)
+        if (primaryPick[qIndex] === idx){
+          if (set.size === 1){
+            primaryPick[qIndex] = Array.from(set)[0];
+          } else {
+            primaryPick[qIndex] = null;
+          }
+        }
+      }
+
+      // re-render current question to update star buttons
+      hideError();
+      render();
+    });
+  });
+
+  // star buttons (set primary)
+  app.querySelectorAll('button[data-star]').forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const idx = parseInt(btn.dataset.star, 10);
+      if (!answers[qIndex].has(idx)) return;
+      primaryPick[qIndex] = idx;
+      hideError();
+      render();
+    });
+  });
+
+  app.querySelector("#back").addEventListener("click", () => {
+    hideError();
+    qIndex = Math.max(0, qIndex-1);
+    render();
+  });
+
+  app.querySelector("#next").addEventListener("click", () => {
+    const set = answers[qIndex];
+    if (set.size !== EXACT_PICKS || primaryPick[qIndex] === null){
+      showError();
+      return;
+    }
+    hideError();
+    qIndex += 1;
+    render();
+  });
+}
+
+function showError(){
+  const el = app.querySelector("#err");
+  if (el){ el.style.display = "block"; }
+}
+function hideError(){
+  const el = app.querySelector("#err");
+  if (el){ el.style.display = "none"; }
+}
+
+function renderResult(){
+  progressEl.style.width = `100%`;
+
+  const res = computeTempleAffinity();
+
+  const pKey = res.primaryTemple;
+  const sKey = res.secondaryTemple;
+  const shKey = res.shadowTemple;
+
+  const tierLine = (t) =>
+    (t === "DOMINANT") ? "This current already knows your name."
+    : (t === "STRONG") ? "This current answers you readily."
+    : "This current awakens with practice.";
+
+  app.innerHTML = `
+    <div class="result">
+      <div class="rtitle">
+        <div class="rmeta">RESULT • TEMPLE AFFINITY</div>
+        <div class="rname">${escapeHtml(TEMPLE_LABEL[pKey])}</div>
+      </div>
+
+      <div class="pair">
+        <h3>Primary Affinity</h3>
+        <div class="line">
+          <div class="big">${escapeHtml(TEMPLE_LABEL[pKey])}</div>
+          <div class="small">• ${escapeHtml(TEMPLE_META[pKey])}</div>
+        </div>
+        <div class="tier"><span>Strength:</span> <b>${escapeHtml(res.primaryTier)}</b> <span>— ${escapeHtml(tierLine(res.primaryTier))}</span></div>
+      </div>
+
+      <div class="pair">
+        <h3>Secondary Affinity</h3>
+        <div class="line">
+          <div class="big">${escapeHtml(TEMPLE_LABEL[sKey])}</div>
+          <div class="small">• ${escapeHtml(TEMPLE_META[sKey])}</div>
+        </div>
+        <div class="tier"><span>Strength:</span> <b>${escapeHtml(res.secondaryTier)}</b> <span>— ${escapeHtml(tierLine(res.secondaryTier))}</span></div>
+      </div>
+
+      <div class="shadow">
+        <h3>Shadow Affinity • Tension / Blind Spot</h3>
+        <div class="line" style="margin-bottom:8px">
+          <div class="big">${escapeHtml(TEMPLE_LABEL[shKey])}</div>
+          <div class="small">• ${escapeHtml(TEMPLE_META[shKey])}</div>
+        </div>
+        <p>${escapeHtml(SHADOW_BLURB[shKey])}</p>
+        <div class="mini">
+          Mythic note: this is not failure — it is the current that tests you, and the lesson that returns when you are ready.
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:16px">
+        <button id="restart">Retake</button>
+        <button class="primary" id="copy">Copy Result</button>
+      </div>
+
+      <div class="mini">
+        If you want a next step: begin inside your Primary Temple first. Let the element choose you after the rituals, not before.
+      </div>
+    </div>
+  `;
+
+  app.querySelector("#restart").addEventListener("click", () => {
+    qIndex = 0;
+    for (let i=0;i<answers.length;i++){
+      answers[i] = new Set();
+      primaryPick[i] = null;
+    }
+    render();
+  });
+
+  app.querySelector("#copy").addEventListener("click", async () => {
+    const text =
+      `FMFC Temple Affinity: Primary ${TEMPLE_LABEL[pKey]} (${res.primaryTier}) • ` +
+      `Secondary ${TEMPLE_LABEL[sKey]} (${res.secondaryTier}) • ` +
+      `Shadow ${TEMPLE_LABEL[shKey]}`;
+    try{
+      await navigator.clipboard.writeText(text);
+      app.querySelector("#copy").textContent = "Copied";
+      setTimeout(()=> app.querySelector("#copy").textContent = "Copy Result", 900);
+    } catch(e){
+      alert(text);
+    }
+  });
+}
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+render();
+</script>
+</body>
+</html>
