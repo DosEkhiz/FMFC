@@ -1,0 +1,701 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FMFC Guild Quiz — Find Your Haus</title>
+  <style>
+    :root{
+      --bg:#07070a;
+      --panel:#0f1016;
+      --panel2:#0b0c12;
+      --text:#f2f2f2;
+      --muted:#b8b8c2;
+      --gold:#d6b25e;
+      --line:#262837;
+      --bad:#ff6b6b;
+
+      --primary:#d6b25e;     /* gold */
+      --secondary:#b8b8c2;   /* muted */
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+      background: radial-gradient(1200px 800px at 30% 0%, #121322 0%, var(--bg) 55%, #05050a 100%);
+      color:var(--text);
+      letter-spacing:.2px;
+    }
+    .wrap{max-width:920px;margin:0 auto;padding:24px 16px 64px;}
+    .top{
+      display:flex;flex-direction:column;gap:8px;margin:8px 0 18px 0;
+      border:1px solid var(--line); border-radius:16px; padding:18px 16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+    }
+    h1{margin:0;font-size:22px;font-weight:800;letter-spacing:.6px}
+    .sub{color:var(--muted); font-size:14px; line-height:1.4}
+    .pill{
+      display:inline-flex;align-items:center;gap:8px;
+      color:var(--gold); font-weight:700; font-size:12px; letter-spacing:1px;
+      text-transform:uppercase;
+      flex-wrap:wrap;
+    }
+    .bar{
+      margin-top:10px;
+      height:10px;border-radius:999px;background:#11121b;border:1px solid var(--line);
+      overflow:hidden;
+    }
+    .bar > div{height:100%;width:0;background:linear-gradient(90deg,var(--gold),#fff1b1);}
+    .card{
+      margin-top:14px;
+      border:1px solid var(--line); border-radius:16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+      padding:18px 16px;
+    }
+    .qhead{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;flex-wrap:wrap}
+    .qnum{color:var(--gold);font-weight:800;letter-spacing:1px}
+    .qtitle{font-size:18px;font-weight:800;margin:6px 0 0 0}
+    .hint{color:var(--muted);font-size:13px}
+
+    .legend{
+      margin-top:12px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid #2a2d41;
+      background:rgba(255,255,255,0.02);
+      border-radius:999px;
+      padding:6px 10px;
+      font-weight:900;
+      letter-spacing:.6px;
+      text-transform:uppercase;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,0.18);
+      background:rgba(255,255,255,0.04);
+    }
+    .dot.primary{ background:rgba(214,178,94,0.9); border-color:rgba(214,178,94,0.9); }
+    .dot.secondary{ background:rgba(184,184,194,0.75); border-color:rgba(184,184,194,0.75); }
+
+    .opts{display:grid;grid-template-columns:1fr;gap:10px;margin-top:14px}
+    @media(min-width:760px){ .opts{grid-template-columns:1fr 1fr;} }
+
+    .opt{
+      display:flex;gap:12px;align-items:flex-start;
+      padding:12px 12px;border-radius:14px;
+      border:1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+      cursor:pointer;
+      transition: transform .05s ease, border-color .15s ease, background .15s ease;
+      user-select:none;
+      position:relative;
+      min-height:74px;
+    }
+    .opt:hover{border-color:#3a3d55;background:rgba(255,255,255,0.04)}
+    .opt:active{transform:translateY(1px)}
+    .opt .txt{line-height:1.25}
+
+    /* selection states */
+    .opt.primary{
+      border-color: rgba(214,178,94,0.95);
+      background: rgba(214,178,94,0.08);
+      box-shadow: 0 0 0 2px rgba(214,178,94,0.22) inset;
+    }
+    .opt.secondary{
+      border-color: rgba(184,184,194,0.70);
+      background: rgba(184,184,194,0.06);
+      box-shadow: 0 0 0 2px rgba(184,184,194,0.18) inset;
+    }
+    .badgePick{
+      position:absolute;
+      top:10px; right:10px;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      letter-spacing:.8px;
+      text-transform:uppercase;
+      border:1px solid rgba(255,255,255,0.10);
+      background:rgba(0,0,0,0.25);
+      color:rgba(255,255,255,0.85);
+    }
+    .badgePick.primary{ border-color: rgba(214,178,94,0.65); }
+    .badgePick.secondary{ border-color: rgba(184,184,194,0.55); }
+
+    .row{display:flex;gap:12px;justify-content:space-between;align-items:center;margin-top:16px;flex-wrap:wrap}
+    .err{color:var(--bad);font-weight:800;font-size:13px;display:none}
+
+    button{
+      appearance:none;border:1px solid var(--line);
+      background:#141628;color:var(--text);
+      padding:10px 14px;border-radius:12px;
+      font-weight:800; letter-spacing:.4px;
+      cursor:pointer;
+    }
+    button.primary{
+      background: linear-gradient(180deg, #1a1c2f, #111225);
+      border-color:#3a3d55;
+    }
+    button.primary:hover{border-color:#6a5a2c}
+    button:disabled{opacity:.45;cursor:not-allowed}
+
+    .result{
+      border:1px solid var(--line); border-radius:16px;
+      background: linear-gradient(180deg,var(--panel),var(--panel2));
+      padding:22px 16px;margin-top:16px;
+    }
+    .rtitle{display:flex;flex-direction:column;gap:6px}
+    .rname{font-size:26px;font-weight:900;letter-spacing:1px}
+    .rmeta{color:var(--gold);font-weight:900;letter-spacing:1px;text-transform:uppercase;font-size:12px}
+    .rbody{margin-top:12px;color:var(--text);line-height:1.55}
+    .pair{
+      margin-top:14px;
+      border:1px solid #2a2d41;
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .pair h3{margin:0 0 6px 0; font-size:12px; letter-spacing:.8px; text-transform:uppercase; color:var(--muted)}
+    .pair .line{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline}
+    .pair .big{font-size:18px;font-weight:900;letter-spacing:.6px}
+    .pair .small{color:var(--muted);font-size:12px}
+    .tier{
+      margin-top:14px;
+      display:inline-flex;align-items:center;gap:8px;
+      border:1px solid #3a3d55;border-radius:999px;padding:6px 10px;
+      background:rgba(255,255,255,0.03);
+      font-weight:900;letter-spacing:.8px;text-transform:uppercase;font-size:12px;
+    }
+    .tier b{color:var(--gold)}
+    .mini{color:var(--muted);font-size:12px;margin-top:10px;line-height:1.5}
+
+    .nextsteps{
+      margin-top:14px;
+      border:1px solid #2a2d41;
+      border-radius:14px;
+      padding:12px 12px;
+      background: rgba(255,255,255,0.02);
+    }
+    .nextsteps .title{
+      font-weight:900; letter-spacing:.6px; text-transform:uppercase;
+      color:var(--muted); font-size:12px;
+    }
+    .nextsteps .links{ display:flex; flex-wrap:wrap; gap:14px; margin-top:10px; }
+    .nextsteps a{
+      color: var(--gold);
+      font-weight:900;
+      text-decoration:none;
+      border-bottom:1px solid rgba(214,178,94,0.35);
+    }
+    .nextsteps a:hover{ border-bottom-color: rgba(214,178,94,0.9); }
+
+    .scores{display:none;}
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="pill">Full Moon Fight Club • Civic Aptitude • Haus &amp; Guild Alignment</div>
+      <h1>Find how you belong in society.</h1>
+      <div class="sub">
+        Each question: choose <b>exactly two</b> options.
+        Your <b>first</b> pick is <b>Primary (+2)</b>. Your <b>second</b> pick is <b>Secondary (+1)</b>.
+        Results appear <b>only at the end</b>.
+      </div>
+      <div class="bar" aria-label="progress">
+        <div id="progress"></div>
+      </div>
+    </div>
+
+    <div id="app"></div>
+  </div>
+
+<script>
+/** ===========================================================
+ *  FMFC Guild Quiz — Click-to-pick Primary/Secondary
+ *  Pick exactly 2 per question:
+ *    - first click = Primary (+2)
+ *    - second click = Secondary (+1)
+ *  Click selected option again to unselect.
+ *  If already 2 picks and click a third option => replaces Secondary.
+ *  =========================================================== */
+
+/** ====== Canon Guild Keys ====== */
+const GUILDS = {
+  // Mind
+  KUJ:  { house:"Mind",  name:"Kujenga",            desc:"Study, doctrine, and disciplined understanding." },
+  GEAR: { house:"Mind",  name:"Gearshift",          desc:"Innovation, applied systems, and clever solutions." },
+  QUILL:{ house:"Mind",  name:"Quill, Clay & Leaf", desc:"Preservation, cultural record, and shaping meaning." },
+  // Body
+  CRU:  { house:"Body",  name:"The Crucible",       desc:"Discipline, performance, and earned excellence." },
+  FND:  { house:"Body",  name:"Foundation",         desc:"Infrastructure, building, and durable reliability." },
+  CUT:  { house:"Body",  name:"Cutters’ Collective",desc:"Provision, standards, and essential craft." },
+  // Spirit
+  KERI: { house:"Spirit",name:"Keri’s Echo",        desc:"Unity, morale, and communal voice." },
+  CAUL: { house:"Spirit",name:"Cauldron",           desc:"Hard truths, transformation, and difficult work." },
+  SHAM: { house:"Spirit",name:"Shaman’s Guild",     desc:"Restoration, stewardship, and care." },
+};
+
+const HOUSES = {
+  Mind: {
+    name: "HAUS OF MIND",
+    vibe: "You belong where knowledge becomes structure — where society is shaped through understanding, invention, and memory.",
+    order: ["KUJ","GEAR","QUILL"]
+  },
+  Body: {
+    name: "HAUS OF BODY",
+    vibe: "You belong where work becomes reality — where society is shaped through training, building, and practical craft.",
+    order: ["CRU","FND","CUT"]
+  },
+  Spirit: {
+    name: "HAUS OF SPIRIT",
+    vibe: "You belong where people become community — where society is shaped through care, voice, and transformation.",
+    order: ["KERI","SHAM","CAUL"]
+  }
+};
+
+const QUESTIONS = [
+  {
+    prompt: "When you enter a long-standing institution, your instinct is to:",
+    options: [
+      { text:"Learn its rules and preserve what works.", guild:"KUJ" },
+      { text:"Look for where it needs reform or improvement.", guild:"GEAR" },
+      { text:"Strengthen its physical foundations.", guild:"FND" },
+      { text:"Test yourself within its competitive standards.", guild:"CRU" },
+      { text:"Serve the group’s shared needs.", guild:"SHAM" },
+      { text:"Carve out a personal path within it.", guild:"CAUL" },
+    ]
+  },
+  {
+    prompt: "When something established no longer functions well, you are more likely to:",
+    options: [
+      { text:"Restore it carefully to its intended form.", guild:"KUJ" },
+      { text:"Redesign it for the future.", guild:"GEAR" },
+      { text:"Rebuild its structure from the ground up.", guild:"FND" },
+      { text:"Push performance until it meets demand.", guild:"CRU" },
+      { text:"Reinforce communal responsibility.", guild:"KERI" },
+      { text:"Act independently to fix what others avoid.", guild:"CAUL" },
+    ]
+  },
+  {
+    prompt: "When given authority, you prefer to:",
+    options: [
+      { text:"Protect continuity.", guild:"QUILL" },
+      { text:"Initiate change.", guild:"GEAR" },
+      { text:"Construct stability.", guild:"FND" },
+      { text:"Lead through visible action.", guild:"CRU" },
+      { text:"Represent the group.", guild:"KERI" },
+      { text:"Work autonomously.", guild:"CAUL" },
+    ]
+  },
+  {
+    prompt: "What kind of work feels most natural to you?",
+    options: [
+      { text:"Refining systems and processes.", guild:"KUJ" },
+      { text:"Shaping narratives and shared meaning.", guild:"QUILL" },
+      { text:"Maintaining essential supply and standards.", guild:"CUT" },
+      { text:"Pushing skill toward higher levels.", guild:"CRU" },
+      { text:"Mending what is broken.", guild:"SHAM" },
+      { text:"Altering what no longer serves.", guild:"CAUL" },
+    ]
+  },
+  {
+    prompt: "You respect people most when they:",
+    options: [
+      { text:"Think structurally and logically.", guild:"KUJ" },
+      { text:"Express culture with clarity.", guild:"QUILL" },
+      { text:"Ensure nothing is wasted.", guild:"CUT" },
+      { text:"Relentlessly improve standards.", guild:"CUT" }, /* micro-edit applied */
+      { text:"Restore others to balance.", guild:"SHAM" },
+      { text:"Transform hard circumstances into power.", guild:"KERI" },
+    ]
+  },
+  {
+    prompt: "In your daily work, you gravitate toward:",
+    options: [
+      { text:"Organized systems.", guild:"GEAR" },
+      { text:"Cultural or expressive output.", guild:"QUILL" },
+      { text:"Practical provision.", guild:"CUT" },
+      { text:"Personal excellence.", guild:"CRU" },
+      { text:"Care and healing.", guild:"SHAM" },
+      { text:"Deep, difficult change.", guild:"CAUL" },
+    ]
+  },
+  {
+    prompt: "If asked to apprentice for a year, you would choose:",
+    options: [
+      { text:"A master of doctrine and tradition.", guild:"KUJ" },
+      { text:"A workshop known for innovation.", guild:"GEAR" },
+      { text:"A regimented training hall.", guild:"CRU" },
+      { text:"A civic construction project.", guild:"FND" },
+      { text:"A communal arts circle.", guild:"KERI" },
+      { text:"A secluded practitioner of difficult arts.", guild:"CAUL" },
+    ]
+  },
+  {
+    prompt: "When society is under stress, you believe it needs more:",
+    options: [
+      { text:"Stability.", guild:"KUJ" },
+      { text:"Bold reform.", guild:"QUILL" },
+      { text:"Discipline.", guild:"CUT" },
+      { text:"Infrastructure.", guild:"FND" },
+      { text:"Unity.", guild:"KERI" },
+      { text:"Courage to confront uncomfortable truths.", guild:"SHAM" },
+    ]
+  },
+  {
+    prompt: "At your best, you are someone who:",
+    options: [
+      { text:"Safeguards what matters.", guild:"QUILL" },
+      { text:"Advances what is possible.", guild:"GEAR" },
+      { text:"Builds what others depend on.", guild:"FND" },
+      { text:"Delivers work at a high standard.", guild:"CUT" }, /* micro-edit applied */
+      { text:"Holds the community together.", guild:"KERI" },
+      { text:"Walks where others will not.", guild:"SHAM" },
+    ]
+  },
+];
+
+const WEIGHTS = { primary: 2, secondary: 1 };
+
+/** ====== STATE ====== */
+let qIndex = 0;
+// store selected option indices (not guild keys) for each question
+// { primary: number|null, secondary: number|null }
+const selections = QUESTIONS.map(()=>({ primary:null, secondary:null }));
+
+/** ====== SCORE ENGINE ====== */
+function emptyScores(){
+  return { KUJ:0, GEAR:0, QUILL:0, CRU:0, FND:0, CUT:0, KERI:0, CAUL:0, SHAM:0 };
+}
+
+function computeScores(){
+  const scores = emptyScores();
+  let valid = true;
+
+  QUESTIONS.forEach((q, qi) => {
+    const sel = selections[qi];
+    if (sel.primary === null || sel.secondary === null) valid = false;
+
+    if (sel.primary !== null){
+      const g = q.options[sel.primary].guild;
+      scores[g] += WEIGHTS.primary;
+    }
+    if (sel.secondary !== null){
+      const g = q.options[sel.secondary].guild;
+      scores[g] += WEIGHTS.secondary;
+    }
+  });
+
+  return { scores, valid };
+}
+
+function houseTotals(scores){
+  return {
+    Mind: scores.KUJ + scores.GEAR + scores.QUILL,
+    Body: scores.CRU + scores.FND + scores.CUT,
+    Spirit: scores.KERI + scores.CAUL + scores.SHAM,
+  };
+}
+
+function sortEntries(obj){
+  return Object.entries(obj).sort((a,b)=>b[1]-a[1]);
+}
+
+function computeWinner(scores){
+  const h = houseTotals(scores);
+  const houseRank = sortEntries(h);
+  const [topHouse, topVal] = houseRank[0];
+  const [secondHouse, secondVal] = houseRank[1];
+
+  const within = (houseName) => {
+    const keys = HOUSES[houseName].order;
+    const entries = keys.map(k => [k, scores[k]]);
+    entries.sort((a,b)=>b[1]-a[1]);
+    return entries;
+  };
+
+  return {
+    topHouse, topVal,
+    secondHouse, secondVal,
+    houseRank,
+    totals: h,
+    topGuildRank: within(topHouse)
+  };
+}
+
+function computeTier(winner, scores){
+  const lead = winner.topVal - winner.secondVal;
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const concentration = total > 0 ? (winner.topVal / total) : 0;
+
+  if (lead >= 6 || concentration >= 0.40) return "DOMINANT";
+  if (lead >= 3 || concentration >= 0.34) return "STRONG";
+  return "EMERGING";
+}
+
+/** ====== UI ====== */
+const app = document.getElementById("app");
+const progressEl = document.getElementById("progress");
+
+function escapeHtml(str){
+  return String(str)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function render(){
+  const pct = Math.round((qIndex / QUESTIONS.length) * 100);
+  progressEl.style.width = `${pct}%`;
+
+  if (qIndex >= QUESTIONS.length){
+    renderResult();
+    return;
+  }
+
+  const q = QUESTIONS[qIndex];
+  const sel = selections[qIndex];
+
+  app.innerHTML = `
+    <div class="card">
+      <div class="qhead">
+        <div>
+          <div class="qnum">QUESTION ${qIndex+1} / ${QUESTIONS.length}</div>
+          <div class="qtitle">${escapeHtml(q.prompt)}</div>
+        </div>
+        <div class="hint">Pick <b>Primary</b> then <b>Secondary</b></div>
+      </div>
+
+      <div class="legend">
+        <span class="chip"><span class="dot primary"></span> Primary (+2)</span>
+        <span class="chip"><span class="dot secondary"></span> Secondary (+1)</span>
+        <span class="chip">Click again to unselect</span>
+      </div>
+
+      <div class="opts">
+        ${q.options.map((opt, i) => {
+          const isP = (sel.primary === i);
+          const isS = (sel.secondary === i);
+          const cls = isP ? "opt primary" : isS ? "opt secondary" : "opt";
+          const badge = isP ? `<div class="badgePick primary">Primary</div>`
+                      : isS ? `<div class="badgePick secondary">Secondary</div>`
+                      : ``;
+          return `
+            <div class="${cls}" role="button" tabindex="0" data-idx="${i}">
+              ${badge}
+              <div class="txt">${escapeHtml(opt.text)}</div>
+            </div>
+          `;
+        }).join("")}
+      </div>
+
+      <div class="row">
+        <div class="err" id="err">Choose exactly 2: one Primary and one Secondary.</div>
+        <div style="display:flex; gap:10px; margin-left:auto;">
+          <button id="back" ${qIndex===0 ? "disabled":""}>Back</button>
+          <button class="primary" id="next">Next</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  function clickOption(idx){
+    const cur = selections[qIndex];
+
+    // If clicked primary again => remove it (and shift secondary up if needed)
+    if (cur.primary === idx){
+      cur.primary = null;
+      // if secondary exists, promote it to primary (keeps order intuitive)
+      if (cur.secondary !== null){
+        cur.primary = cur.secondary;
+        cur.secondary = null;
+      }
+      hideError();
+      render();
+      return;
+    }
+
+    // If clicked secondary again => remove it
+    if (cur.secondary === idx){
+      cur.secondary = null;
+      hideError();
+      render();
+      return;
+    }
+
+    // If empty primary slot => set primary
+    if (cur.primary === null){
+      cur.primary = idx;
+      hideError();
+      render();
+      return;
+    }
+
+    // If empty secondary slot and not same as primary => set secondary
+    if (cur.secondary === null){
+      if (cur.primary === idx) return;
+      cur.secondary = idx;
+      hideError();
+      render();
+      return;
+    }
+
+    // If both filled and clicked a third option => replace secondary
+    if (cur.primary !== idx){
+      cur.secondary = idx;
+      hideError();
+      render();
+      return;
+    }
+  }
+
+  // bind option clicks + keyboard enter/space
+  app.querySelectorAll('.opt[role="button"]').forEach(el => {
+    const idx = parseInt(el.dataset.idx, 10);
+    el.addEventListener("click", ()=>clickOption(idx));
+    el.addEventListener("keydown", (e)=>{
+      if (e.key === "Enter" || e.key === " "){
+        e.preventDefault();
+        clickOption(idx);
+      }
+    });
+  });
+
+  document.getElementById("back").addEventListener("click", ()=>{
+    hideError();
+    qIndex = Math.max(0, qIndex-1);
+    render();
+  });
+
+  document.getElementById("next").addEventListener("click", ()=>{
+    const cur = selections[qIndex];
+    if (cur.primary === null || cur.secondary === null){
+      showError();
+      return;
+    }
+    hideError();
+    qIndex += 1;
+    render();
+  });
+}
+
+function showError(){
+  const el = document.getElementById("err");
+  if (el) el.style.display = "block";
+}
+function hideError(){
+  const el = document.getElementById("err");
+  if (el) el.style.display = "none";
+}
+
+function renderResult(){
+  progressEl.style.width = `100%`;
+
+  const payload = computeScores();
+  const scores = payload.scores;
+  const winner = computeWinner(scores);
+  const tier = computeTier(winner, scores);
+
+  const haus = HOUSES[winner.topHouse];
+
+  const [g1, g2, g3] = winner.topGuildRank.map(([k,v])=>({ key:k, val:v, data:GUILDS[k] }));
+
+  const tierLine = (tier === "DOMINANT")
+    ? "This is not preference — it’s where you naturally belong."
+    : (tier === "STRONG")
+      ? "This is your steady civic center."
+      : "This is present in you — it strengthens with practice.";
+
+  app.innerHTML = `
+    <div class="result">
+      <div class="rtitle">
+        <div class="rmeta">RESULT • HAUS ALIGNMENT</div>
+        <div class="rname">${escapeHtml(haus.name)}</div>
+      </div>
+
+      <div class="rbody">${escapeHtml(haus.vibe)}</div>
+
+      <div class="pair">
+        <h3>Your Guild Lean (1 / 2 / 3)</h3>
+
+        <div class="line">
+          <div class="big">1) ${escapeHtml(g1.data.name)}</div>
+          <div class="small">• ${escapeHtml(g1.data.desc)}</div>
+        </div>
+
+        <div class="line" style="margin-top:8px">
+          <div class="big">2) ${escapeHtml(g2.data.name)}</div>
+          <div class="small">• ${escapeHtml(g2.data.desc)}</div>
+        </div>
+
+        <div class="line" style="margin-top:8px">
+          <div class="big">3) ${escapeHtml(g3.data.name)}</div>
+          <div class="small">• ${escapeHtml(g3.data.desc)}</div>
+        </div>
+
+        <div class="mini">Primary picks are weighted +2. Secondary picks are weighted +1.</div>
+      </div>
+
+      <div class="tier"><span>Alignment Strength:</span> <b>${escapeHtml(tier)}</b> <span>— ${escapeHtml(tierLine)}</span></div>
+
+      <div class="row" style="margin-top:16px">
+        <button id="restart">Retake</button>
+        <button class="primary" id="copy">Copy Result</button>
+      </div>
+
+      <div class="nextsteps">
+        <div class="title">Next steps</div>
+        <div class="mini">Complete your character build — persona, weapon, bonded beast, and magical temple affinity.</div>
+        <div class="links">
+          <a href="https://dosekhiz.github.io/FMFC/">Combat Persona →</a>
+          <a href="https://dosekhiz.github.io/FMFC/weapon-quiz/">Weapon Style →</a>
+          <a href="https://dosekhiz.github.io/FMFC/beast-bond/">Bonded Beast →</a>
+          <a href="https://dosekhiz.github.io/FMFC/temple-affinity/">Magical Temple Affinity →</a>
+        </div>
+      </div>
+
+      <div class="scores" id="debug">
+        ${Object.entries(scores).map(([k,v])=>`${k}:${v}`).join(" | ")}
+      </div>
+    </div>
+  `;
+
+  document.getElementById("restart").addEventListener("click", ()=>{
+    qIndex = 0;
+    for (let i=0;i<selections.length;i++) selections[i] = {primary:null, secondary:null};
+    render();
+  });
+
+  document.getElementById("copy").addEventListener("click", async ()=>{
+    const text = `FMFC Guild Alignment: ${haus.name} • 1) ${g1.data.name} 2) ${g2.data.name} 3) ${g3.data.name} • Strength: ${tier}`;
+    try{
+      await navigator.clipboard.writeText(text);
+      const btn = document.getElementById("copy");
+      btn.textContent = "Copied";
+      setTimeout(()=> btn.textContent = "Copy Result", 900);
+    } catch(e){
+      alert(text);
+    }
+  });
+}
+
+render();
+</script>
+</body>
+</html>
